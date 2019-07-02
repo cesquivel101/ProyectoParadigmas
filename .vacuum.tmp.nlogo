@@ -1,5 +1,6 @@
 turtles-own [energy]
 globals[direccion obstaculo]
+;user-message (word "There are " count turtles " turtles.")
 
 to setup
   clear-all
@@ -10,117 +11,81 @@ to setup
   reset-ticks
   set direccion 90
   set obstaculo 32
+  ask patches with [
+    pxcor = min-pxcor or
+    pxcor = max-pxcor or
+    pycor = min-pycor or
+    pycor = max-pycor
+  ]
+  [
+    set pcolor 32
+  ]
 end
 
 to go
-  find-start-point
-  ;move-vacuum
-  ;vacuum-dust
+  vacuum-dust
+  move-vacuum
   tick
-end
-
-;to move-vacuum
-;  ask turtles [
-;    right random 360
-;    if patch-ahead 1 != nobody [
-;      if ([pcolor] of patch-ahead 1 != 32)
-;        [ fd 1 ]
-;    ]
-;  ]
-;end
-
-to find-start-point
-  ask turtles [
-    ;set heading 90
-
-    ;while [ patch-ahead 1 != nobody and [pcolor] of patch-ahead 1 != 32 and [pcolor] of patch-ahead 1 != white ]
-    ;[
-      ifelse ( patch-ahead 1 != nobody and [pcolor] of patch-ahead 1 != 32 );and [pcolor] of patch-ahead 1 != white)
-        [ fd 1
-          ask turtles [
-            if pcolor = brown [ set pcolor white]
-
-        ]
-        [set heading heading + 90     fd 1    ;set heading heading + 90
-        ask turtles [
-    if pcolor = brown [ set pcolor white]
-  ]
-    ]
-    ;set heading 90
-    ;]
-  ]
 end
 
 to move-vacuum
 
   ask turtles [
+    ;user-message (word "(90)direccion = " direccion)
+    ifelse direccion = 90
+    [ ; si giró a la derecha       IF 1
+        ifelse ( patch-ahead 1 != nobody and [pcolor] of patch-ahead 1 != 32) ; si no hay obstaculos enfrente
+        [];[  fd 1 ] ; avanza sin problema
+      [ set direccion 180 set heading direccion ];user-message (word "giro abajo" )] ; de lo contrario, gira hacia abajo
 
-    set heading 90
-
-    ifelse ( patch-ahead 1 != nobody and [pcolor] of patch-ahead 1 != 32) ;patch-at (dx)(dy)
-        [ ]
-        [set heading heading + 90
-         fd 1
-         set heading heading + 90]
-
-    ifelse ( patch-ahead 1 != nobody and [pcolor] of patch-ahead 1 != 32)
-        [ ]
-        [set heading heading + 90]
-
-    ifelse ( patch-ahead 1 != nobody and [pcolor] of patch-ahead 1 != 32)
-        []
-        [set heading heading + 90]
-
-    fd 1
-
-
-
-
-
-;    set heading 0
-;    if patch-ahead 1 != nobody [
-;      if ([pcolor] of patch-ahead 1 != 32)
-;        [ fd 1 ]
-;    ]
-
-;  ask turtles [
-;    right 0;set new-heading 0
-;    if patch-ahead 1 != nobody [
-;      if ([pcolor] of patch-ahead 1 != 32)
-;        [ fd 1 ]
-;    ]
-;
-;    right 90;set new-heading 90
-;    if patch-ahead 1 != nobody [
-;      if ([pcolor] of patch-ahead 1 != 32)
-;        [ fd 1 ]
-;    ]
-;
-;    right 180;set new-heading 180
-;    if patch-ahead 1 != nobody [
-;      if ([pcolor] of patch-ahead 1 != 32)
-;        [ fd 1 ]
-;    ]
-;
-;    right 270;set new-heading 270
-;    if patch-ahead 1 != nobody [
-;      if ([pcolor] of patch-ahead 1 != 32)
-;        [ fd 1 ]
-;    ]
+    ]
+    [ifelse direccion = 180  ; si giró hacia abajo    ELSE 1
+        ; si abajo, izquierda y derecha están bloqueados
+        [ifelse (( patch-at 1 0 = nobody or [pcolor] of patch-at 1 0 = 32) and ( patch-at -1 0 = nobody or [pcolor] of patch-at -1 0 = 32) and ( patch-at 0 -1 = nobody or [pcolor] of patch-at 0 -1 = 32))
+            [ set direccion 0  ];user-message (word "giro arriba" )] ; gire hacia arriba
+            ; si hay obstáculo solo a la derecha y abajo
+            [ifelse (( patch-at 1 0 = nobody or [pcolor] of patch-at 1 0 = 32) and ( patch-at -1 0 != nobody or [pcolor] of patch-at -1 0 != 32) and ( patch-at 0 -1 = nobody or [pcolor] of patch-at 0 -1 = 32))
+                [ set direccion 270 set heading direccion ];user-message (word "giro izquierda1" )] ; gira hacia la izquierda
+                ; si hay obstáculo solo a la izquierda y abajo
+                [ifelse (( patch-at 1 0 != nobody or [pcolor] of patch-at 1 0 != 32) and ( patch-at -1 0 = nobody or [pcolor] of patch-at -1 0 = 32) and ( patch-at 0 -1 = nobody or [pcolor] of patch-at 0 -1 = 32))
+                    [ set direccion 90 set heading direccion ];user-message (word "giro derecha2" )] ; gira hacia la derecha
+                    ; si hay obstáculo solo a la izquierda y derecha
+                    [ifelse (( patch-at 1 0 = nobody or [pcolor] of patch-at 1 0 = 32) and ( patch-at -1 0 = nobody or [pcolor] of patch-at -1 0 = 32))
+                        [] ; no hacer nada
+                        ; si hay obstáculo solo a la derecha
+                        [ifelse (( patch-at 1 0 = nobody or [pcolor] of patch-at 1 0 = 32) and ( patch-at -1 0 != nobody or [pcolor] of patch-at -1 0 != 32))
+                            [ set direccion 270 set heading direccion ];user-message (word "giro izquierda2" ) ] ; gira hacia la izquierda
+                            ; si hay obstáculo solo a la izquierda
+                            [ifelse (( patch-at 1 0 != nobody or [pcolor] of patch-at 1 0 != 32) and ( patch-at -1 0 = nobody or [pcolor] of patch-at -1 0 = 32))
+                                [ set direccion 90 set heading direccion ];user-message (word "giro derecha2" )] ; gira hacia la derecha
+                                [ set direccion 270 set heading direccion ];user-message (word "giro izquierda3" ) ]
+      ]]]]]]
 
 
-  ]
+    [ifelse direccion = 270 [ ; si giró a la izquierda    ELSE 1.1
+        ifelse ( patch-ahead 1 != nobody and [pcolor] of patch-ahead 1 != 32) ; si llega al borde izquierdo o a un obstaculo
+            [];[  fd 1 ] ; si no ha llegado al borde izquierdo o no hay obstáculo, avanza sin problema
+            [ set direccion 180 set heading direccion  ];user-message (word "giro abajo" )] ; de lo contrario, gira hacia abajo
+    ]
+    [ifelse direccion = 0 [ ; si giró hacia arriba
+        ; si a la izquierda y derecha hay obstáculos
+        if (( patch-at 1 0 = nobody or [pcolor] of patch-at 1 0 = 32) and ( patch-at -1 0 = nobody or [pcolor] of patch-at -1 0 = 32)) [
+            ifelse ( patch-ahead 1 != nobody and [pcolor] of patch-ahead 1 != 32) ; si puede avanzar hacia arriba
+                [];[ fd 1 ] ; avanza
+                [ set direccion 0 set heading direccion ];user-message (word "giro arriba" )] ; de lo contrario, gira hacia arriba para devolverse
+            ; si hay obstáculo solo a la derecha
+            ifelse (( patch-at 1 0 = nobody or [pcolor] of patch-at 1 0 = 32) and ( patch-at -1 0 != nobody and [pcolor] of patch-at -1 0 != 32))
+                [];[ fd 1 ] ; avanza
+                [ set direccion 270 set heading direccion ];user-message (word "giro izquierda3" )] ; de lo contrario, gira hacia la izquierda
+            ; si hay obstáculo solo a la izquierda
+            ifelse (( patch-at 1 0 != nobody and [pcolor] of patch-at 1 0 != 32) and ( patch-at -1 0 = nobody or [pcolor] of patch-at -1 0 = 32))
+                [];[ fd 1 ] ; avanza
+                [ set direccion 90 set heading direccion ];user-message (word "giro derecha3" )] ; de lo contrario, gira hacia la derecha
+        ]
+  ][]]]] if  fd 1 ]
 end
 
-;to move-recursively
-;  if count patches with [pcolor = brown] > 0 [
-;    if patch-ahead 1 != nobody [
-;      if ([pcolor] of patch-ahead 1 != 32)
-;        up
-;        [ fd 1 ]
-;    ]
-;  ]
-;end
+
 
 to setup-dust
   ask patches [set pcolor brown]
@@ -130,7 +95,7 @@ to setup-vacuum
   create-turtles 1
   ask turtles [set color black]
   set-default-shape turtles "circle"
-  ask turtles [setxy min-pxcor max-pycor]
+  ask turtles [setxy (min-pxcor + 1) (max-pycor - 1)]
   ask turtles [set heading 90]
 end
 
@@ -245,7 +210,7 @@ obstacles
 obstacles
 0
 100
-20.0
+11.0
 1
 1
 NIL
