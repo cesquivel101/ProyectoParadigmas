@@ -1,5 +1,5 @@
 ;turtles-own [energy]
-globals[direccion]; obstaculo]
+globals[direccion _UP _DOWN _RIGHT _LEFT ROW COLUMN DIRECTION]; obstaculo]
 ;user-message (word "There are " count turtles " turtles.")
 
 to setup
@@ -8,14 +8,24 @@ to setup
   setup-vacuum
   setup-obstacles
   set direccion 90
+
+  set _UP 0
+  set _DOWN 180
+  set _RIGHT 90
+  set _LEFT 270
+  set ROW (min-pycor + 1)
+  set COLUMN (min-pxcor + 1)
+  set DIRECTION _UP
+  ;set CURRENT_PCOLOR 0
   ;set obstaculo 32
   set-plot-pen-color brown
   reset-ticks
 end
-
+;(min-pxcor + 1) (max-pycor - 1)
 to go
-  vacuum-dust
-  move-vacuum
+  ;vacuum-dust
+  ;move-vacuum
+  move-vacuum-recursive
   tick
 end
 
@@ -25,8 +35,8 @@ to move-vacuum
     ;user-message (word "(90)direccion = " direccion)
     ifelse direccion = 90
     [ ; si giró a la derecha
-        ifelse ( patch-ahead 1 != nobody and [pcolor] of patch-ahead 1 != 32) ; si no hay obstaculos enfrente
-          [if ( patch-at 0 1 != nobody and [pcolor] of patch-at 0 1 = brown) [ set direccion 0 set heading direccion ]] ; si el bloque de arriba está sucio, gira hacia arriba
+        ifelse ( [pcolor] of patch-ahead 1 != 32) ; si no hay obstaculos enfrente
+          [if ( [pcolor] of patch-at 0 1 = brown) [ set direccion 0 set heading direccion ]] ; si el bloque de arriba está sucio, gira hacia arriba
               [ set direccion 180 set heading direccion ];user-message (word "giro abajo" )] ; de lo contrario, gira hacia abajo
 
     ]
@@ -129,6 +139,57 @@ to setup-obstacles
   [ set pcolor 32 ]
 
 end
+
+to move-vacuum-recursive
+  remove-neighbor-block
+end
+
+to remove-neighbor-block ;[row column direction]
+   if(ROW > min-pycor and ROW < max-pycor and COLUMN > min-pxcor and COLUMN < max-pxcor)
+   [
+     ask turtles[
+      if([pcolor] of patch-at 0 0 = brown)
+      [
+         set pcolor white
+      ]
+     ]
+        if(direction != _UP)
+        [
+          set ROW (ROW - 1)
+          set DIRECTION _DOWN
+          ;ask turtles[setxy ROW COLUMN]
+          remove-neighbor-block
+        ]
+        if(direction != _DOWN)
+        [
+          set ROW (ROW + 1)
+          set DIRECTION _UP
+          ;setxy ROW COLUMN
+          ask turtles[setxy ROW COLUMN]
+          remove-neighbor-block
+        ]
+        if(direction != _LEFT)
+        [
+          set COLUMN (COLUMN - 1)
+          set DIRECTION _RIGHT
+          ;setxy ROW COLUMN
+          ask turtles[setxy ROW COLUMN]
+          remove-neighbor-block
+        ]
+        if(direction != _RIGHT)
+        [
+          set COLUMN (COLUMN + 1)
+          set DIRECTION _DOWN
+          ;   setxy ROW COLUMN
+          ask turtles[setxy ROW COLUMN]
+          remove-neighbor-block
+        ]
+
+
+   ]
+end
+
+
 @#$#@#$#@
 GRAPHICS-WINDOW
 239
@@ -229,7 +290,7 @@ obstacles
 obstacles
 0
 100
-60.0
+51.0
 1
 1
 NIL
