@@ -1,5 +1,5 @@
 ;turtles-own [energy]
-globals[direccion _UP _DOWN _RIGHT _LEFT ROW COLUMN DIRECTION]; obstaculo]
+globals[direccion _UP _DOWN _RIGHT _LEFT ];ROW COLUMN DIRECTION]; obstaculo]
 ;user-message (word "There are " count turtles " turtles.")
 
 to setup
@@ -13,9 +13,9 @@ to setup
   set _DOWN 180
   set _RIGHT 90
   set _LEFT 270
-  set ROW (min-pycor + 1)
-  set COLUMN (min-pxcor + 1)
-  set DIRECTION _UP
+  ;set ROW (min-pycor + 1)
+  ;set COLUMN (min-pxcor + 1)
+  ;set DIRECTION _UP
   ;set CURRENT_PCOLOR 0
   ;set obstaculo 32
   set-plot-pen-color brown
@@ -25,7 +25,7 @@ end
 to go
   ;vacuum-dust
   ;move-vacuum
-  move-vacuum-recursive
+  move-vacuum-recursive (min-pycor + 2) (min-pxcor + 2) _UP
   tick
 end
 
@@ -140,53 +140,78 @@ to setup-obstacles
 
 end
 
-to move-vacuum-recursive
-  remove-neighbor-block
+to move-vacuum-recursive [row column dir]
+  remove-neighbor-block row column dir
 end
 
-to remove-neighbor-block ;[row column direction]
-   if(ROW > min-pycor and ROW < max-pycor and COLUMN > min-pxcor and COLUMN < max-pxcor)
+to remove-neighbor-block [row column dir]
+   if(is-inside-border column row)
    [
      ask turtles[
       if([pcolor] of patch-at 0 0 = brown)
       [
+        show "Painted white"
+        print-status
          set pcolor white
       ]
      ]
-        if(direction != _UP)
+        ;if(row - 1 >= (min-pycor + 1) and row - 1 <= (max-pycor - 1))
+        if(is-inside-border column (row - 1))
         [
-          set ROW (ROW - 1)
-          set DIRECTION _DOWN
-          ;ask turtles[setxy ROW COLUMN]
-          remove-neighbor-block
+          show "UP"
+          set row (row - 1)
+          set dir _DOWN
+          ask turtles[setxy column row set heading dir]
+          remove-neighbor-block row column dir
         ]
-        if(direction != _DOWN)
+        ;if(row + 1 >= min-pycor + 1 and row + 1 <= max-pycor - 1)
+        if(is-inside-border column (row + 1))
         [
-          set ROW (ROW + 1)
-          set DIRECTION _UP
+          show "DOWN"
+          set row (row + 1)
+          set dir _UP
           ;setxy ROW COLUMN
-          ask turtles[setxy ROW COLUMN]
-          remove-neighbor-block
+          ask turtles[setxy column row set heading dir]
+          remove-neighbor-block row column dir
         ]
-        if(direction != _LEFT)
+        ;if(column - 1 >= (min-pxcor + 1) and column - 1 <= (max-pxcor - 1))
+        if(is-inside-border (column - 1) row)
         [
-          set COLUMN (COLUMN - 1)
-          set DIRECTION _RIGHT
+          show "LEFT"
+          set column (column - 1)
+          set dir _RIGHT
           ;setxy ROW COLUMN
-          ask turtles[setxy ROW COLUMN]
-          remove-neighbor-block
+          ask turtles[setxy column row set heading dir]
+          remove-neighbor-block row column dir
         ]
-        if(direction != _RIGHT)
+        ;if(column + 1 >= (min-pxcor + 1) and column + 1 <= (max-pxcor - 1))
+        if(is-inside-border (column + 1) row)
         [
-          set COLUMN (COLUMN + 1)
-          set DIRECTION _DOWN
+          show "RIGHT"
+          set column (column + 1)
+          set dir _DOWN
           ;   setxy ROW COLUMN
-          ask turtles[setxy ROW COLUMN]
-          remove-neighbor-block
+          ask turtles[setxy column row set heading dir]
+          remove-neighbor-block row column dir
         ]
-
-
    ]
+end
+
+to-report is-inside-border [x y]
+  ifelse (x >= (min-pxcor + 1)) and (x <= (max-pxcor - 1)) and (y >= (min-pycor + 1)) and (y <= (max-pycor - 1))
+  [report true]
+  [report false]
+end
+
+
+to print-status
+   ;show "column:"
+   ;show COLUMN
+  ; show "row:"
+  ; show ROW
+   ;show "DIRECTION"
+  ; show DIRECTION
+
 end
 
 
