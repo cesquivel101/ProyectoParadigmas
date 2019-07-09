@@ -198,7 +198,7 @@ to Look-for-Goal
 
 
   ; Take one random Goal
-  let Goal one-of p-valids ; ************************************
+  ;let Goal one-of p-valids ; ************************************
 
 
 
