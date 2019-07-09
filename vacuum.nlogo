@@ -1,5 +1,5 @@
 ;turtles-own [energy]
-globals[direccion _UP _DOWN _RIGHT _LEFT ISDUSTY _ROW _COLUMN _DIRECTION _REPEATPATCHCOUNTER]; obstaculo]
+globals[direccion _UP _DOWN _RIGHT _LEFT ISDUSTY _ROW _COLUMN _DIRECTION _REPEATPATCHCOUNTER _FOUNDDIRECTION]; obstaculo]
 ;user-message (word "There are " count turtles " turtles.")
 
 to setup
@@ -14,10 +14,12 @@ to setup
   set _RIGHT 90
   set _LEFT 270
   set ISDUSTY false
-  set _ROW (min-pycor + 2)
-  set _COLUMN (min-pxcor + 2)
+  set _ROW (min-pycor + 1)
+  set _COLUMN (min-pxcor + 1)
+  ask turtles[set heading _UP]
   set _DIRECTION _UP
   set _REPEATPATCHCOUNTER 0
+  set _FOUNDDIRECTION 0
   ;set CURRENT_PCOLOR 0
   ;set obstaculo 32
   set-plot-pen-color brown
@@ -28,6 +30,7 @@ to go
   ;vacuum-dust
   ;move-vacuum
   ;move-vacuum-recursive (min-pycor + 2) (min-pxcor + 2) _UP
+  find-nearest-dust
   decide-direction
   tick
 end
@@ -131,6 +134,7 @@ to setup-obstacles
   ;ask  patches [
     ;if random 100 < obstacles [ set pcolor 32 ]
     ;ask n-of obstacles patches [set pcolor 32]
+  ;HAY QUE PONER UNA RESTRICCION DE QUE NO SE PUEDE PONER UN OBSTACULO EN EL PUNTO INICIAL
   repeat obstacles [ask one-of patches [ set pcolor 32 ]]
   ;]
   ask patches with [
@@ -144,89 +148,119 @@ to setup-obstacles
 end
 
 to decide-direction
-   show "Starting"
-   print-status _ROW _COLUMN _DIRECTION
-   find-nearest-dust
+   set _FOUNDDIRECTION 0
+   ;show "Starting"
+   ;print-status _ROW _COLUMN _DIRECTION
    set _REPEATPATCHCOUNTER (_REPEATPATCHCOUNTER + 1)
    if(is-inside-border _COLUMN _ROW)
    [
-     ask turtles[
-      if([pcolor] of patch-at 0 0 = brown)
-      [
-        show "Painted white"
-        print-status _ROW _COLUMN _DIRECTION
-         set pcolor white
-      ]
-     ]
-        ;if(row - 1 >= (min-pycor + 1) and row - 1 <= (max-pycor - 1))
-        if(is-inside-border _COLUMN (_ROW - 1) and is-neighbor-dusty 0 1)
-        [
-          show "UP"
-          set _REPEATPATCHCOUNTER 0
-          print-status _ROW _COLUMN _DIRECTION
-          set _ROW (_ROW - 1)
-          set _DIRECTION _UP
-          ask turtles[set heading _DIRECTION fd 1]
-          ;remove-neighbor-block (row - 1) column _UP
-        ]
-
-        ;if(column + 1 >= (min-pxcor + 1) and column + 1 <= (max-pxcor - 1))
-        if(is-inside-border (_COLUMN + 1) _ROW and is-neighbor-dusty 1 0)
-        [
-          ;show "RIGHT"
-          ;print-status row column dir
-          set _REPEATPATCHCOUNTER 0
-          set _COLUMN (_COLUMN + 1)
-          set _DIRECTION _RIGHT
-          ;   setxy ROW COLUMN
-          ask turtles[set heading _DIRECTION fd 1]
-          ;remove-neighbor-block row (column + 1) _RIGHT
-        ]
-
-        ;if(row + 1 >= min-pycor + 1 and row + 1 <= max-pycor - 1)
-        if(is-inside-border _COLUMN (_ROW + 1) and is-neighbor-dusty 0 -1)
-        [
-          ;show "DOWN"
-          ;print-status row column dir
-          set _REPEATPATCHCOUNTER 0
-          set _ROW (_ROW + 1)
-          set _DIRECTION _DOWN
-          ;setxy ROW COLUMN
-          ask turtles[set heading _DIRECTION fd 1]
-         ; remove-neighbor-block (row + 1) column _DOWN
-        ]
-        ;if(column - 1 >= (min-pxcor + 1) and column - 1 <= (max-pxcor - 1))
-        if(is-inside-border (_COLUMN - 1) _ROW and is-neighbor-dusty -1 0)
-        [
-          ;show "LEFT"
-          ;print-status row column dir
-          set _REPEATPATCHCOUNTER 0
-          set _COLUMN (_COLUMN - 1)
-          set _DIRECTION _LEFT
-          ;setxy ROW COLUMN
-          ask turtles[set heading _DIRECTION fd 1]
-          ;remove-neighbor-block row (column - 1) _LEFT
-        ]
+      vacuum-patch
+      go-up
+      go-right
+      go-down
+      go-left
 
    ]
 
 end
 
+to vacuum-patch
+  ask turtles[
+     if([pcolor] of patch-at 0 0 = brown)
+     [
+       set _REPEATPATCHCOUNTER 0
+       show "Painted white"
+       ;print-status _ROW _COLUMN _DIRECTION
+       set pcolor white
+     ]
+  ]
+end
+
+to go-up
+  if(is-inside-border _COLUMN (_ROW - 1) and is-neighbor-dusty 0 1 and _FOUNDDIRECTION != 1)
+  ;if(is-inside-border (_ROW - 1) _COLUMN  and is-neighbor-dusty 0 1)
+  [
+    set _REPEATPATCHCOUNTER 0
+    set _ROW (_ROW - 1)
+    ;set _DIRECTION _UP
+    ask turtles[set heading _UP fd 1  SHOW "MOVED UP"]
+    set _FOUNDDIRECTION 1
+    ;ask turtles[set heading _UP]
+    ;ask turtles[ fd 1]
+    show "UP"
+    ;print-status _ROW _COLUMN _DIRECTION
+  ]
+end
+
+to go-right
+  if(is-inside-border (_COLUMN + 1) _ROW and is-neighbor-dusty 1 0 and _FOUNDDIRECTION != 1)
+  ;if(is-inside-border _ROW (_COLUMN + 1) and is-neighbor-dusty 1 0)
+  [
+    set _REPEATPATCHCOUNTER 0
+    set _COLUMN (_COLUMN + 1)
+    ;set _DIRECTION _RIGHT
+    ask turtles[set heading _RIGHT fd 1 SHOW "MOVED RIGHT"]
+    set _FOUNDDIRECTION 1
+    ;ask turtles[set heading _RIGHT ]
+    ;ask turtles[fd 1]
+    show "RIGHT"
+    ;print-status row column dir
+  ]
+end
+
+to go-down
+  if(is-inside-border _COLUMN (_ROW + 1) and is-neighbor-dusty 0 -1 and _FOUNDDIRECTION != 1)
+  ;if(is-inside-border (_ROW + 1) _COLUMN  and is-neighbor-dusty 0 -1)
+  [
+    set _REPEATPATCHCOUNTER 0
+    set _ROW (_ROW + 1)
+    ;set _DIRECTION _DOWN
+    ask turtles[set heading _DOWN fd 1 SHOW "MOVED DOWN"]
+    set _FOUNDDIRECTION 1
+    ;ask turtles[set heading _DOWN ]
+    ;ask turtles[fd 1]
+    show "DOWN"
+    ;print-status row column dir
+  ]
+end
+
+to go-left
+  if(is-inside-border (_COLUMN - 1) _ROW and is-neighbor-dusty -1 0 and _FOUNDDIRECTION != 1)
+  ;if(is-inside-border _ROW (_COLUMN - 1) and is-neighbor-dusty -1 0)
+  [
+    set _REPEATPATCHCOUNTER 0
+    set _COLUMN (_COLUMN - 1)
+    ;set _DIRECTION _LEFT
+    ask turtles[set heading _LEFT fd 1 SHOW "MOVED LEFT"]
+    set _FOUNDDIRECTION 1
+    ;ask turtles[set heading _LEFT]
+    ;ask turtles[ fd 1]
+    show "LEFT"
+    ;print-status row column dir
+  ]
+end
+
 to find-nearest-dust
   ask turtles[
-  if _REPEATPATCHCOUNTER > 1 [
-    let target-patch min-one-of (patches in-radius 25 with [pcolor = brown]) [distance myself]
-    if target-patch != nobody  [
-      move-to target-patch
+    if _REPEATPATCHCOUNTER > 1 [ ;; No se si aca deberia ir un 1 o un 2
+      let target-patch min-one-of (patches in-radius 25 with [pcolor = brown]) [distance myself]
+      if target-patch != nobody  [
+        show "SHould i actually be here?: find-nearest-dust"
+        ;falta verificar aca que si hay un obstaculo entonces que se cambie la direccion de la tortuga: patch-ahead
+        face target-patch fd 1
+        ; move-to target-patch
+      ]
     ]
-  ] ]
+  ]
 end
 
 ; podriamos calcular la cantidad de veces que pasamos por un patch ya limpio?
+; necesitamos la condicion de parada
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 to-report is-inside-border [x y]
-  ifelse (x > (min-pxcor + 1)) and (x < (max-pxcor - 1)) and (y > (min-pycor + 1)) and (y < (max-pycor - 1))
+  ;ifelse (x > (min-pxcor + 1)) and (x < (max-pxcor - 1)) and (y > (min-pycor + 1)) and (y < (max-pycor - 1))
+  ifelse (x > (min-pxcor)) and (x < (max-pxcor)) and (y > (min-pycor)) and (y < (max-pycor))
   [report true]
   [report false]
 end
