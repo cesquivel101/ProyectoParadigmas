@@ -1,5 +1,5 @@
 ;turtles-own [energy]
-globals[direccion _UP _DOWN _RIGHT _LEFT ];ROW COLUMN DIRECTION]; obstaculo]
+globals[direccion _UP _DOWN _RIGHT _LEFT ISDUSTY _ROW _COLUMN _DIRECTION _REPEATPATCHCOUNTER]; obstaculo]
 ;user-message (word "There are " count turtles " turtles.")
 
 to setup
@@ -13,9 +13,11 @@ to setup
   set _DOWN 180
   set _RIGHT 90
   set _LEFT 270
-  ;set ROW (min-pycor + 1)
-  ;set COLUMN (min-pxcor + 1)
-  ;set DIRECTION _UP
+  set ISDUSTY false
+  set _ROW (min-pycor + 2)
+  set _COLUMN (min-pxcor + 2)
+  set _DIRECTION _UP
+  set _REPEATPATCHCOUNTER 0
   ;set CURRENT_PCOLOR 0
   ;set obstaculo 32
   set-plot-pen-color brown
@@ -25,7 +27,8 @@ end
 to go
   ;vacuum-dust
   ;move-vacuum
-  move-vacuum-recursive (min-pycor + 2) (min-pxcor + 2) _UP
+  ;move-vacuum-recursive (min-pycor + 2) (min-pxcor + 2) _UP
+  decide-direction
   tick
 end
 
@@ -140,81 +143,112 @@ to setup-obstacles
 
 end
 
-to move-vacuum-recursive [row column dir]
-  remove-neighbor-block row column dir
-end
-
-to remove-neighbor-block [row column dir]
-   if(is-inside-border column row)
+to decide-direction
+   show "Starting"
+   print-status _ROW _COLUMN _DIRECTION
+   find-nearest-dust
+   set _REPEATPATCHCOUNTER (_REPEATPATCHCOUNTER + 1)
+   if(is-inside-border _COLUMN _ROW)
    [
      ask turtles[
       if([pcolor] of patch-at 0 0 = brown)
       [
         show "Painted white"
-        print-status
+        print-status _ROW _COLUMN _DIRECTION
          set pcolor white
       ]
      ]
         ;if(row - 1 >= (min-pycor + 1) and row - 1 <= (max-pycor - 1))
-        if(is-inside-border column (row - 1))
+        if(is-inside-border _COLUMN (_ROW - 1) and is-neighbor-dusty 0 1)
         [
           show "UP"
-          set row (row - 1)
-          set dir _DOWN
-          ask turtles[setxy column row set heading dir]
-          remove-neighbor-block row column dir
+          set _REPEATPATCHCOUNTER 0
+          print-status _ROW _COLUMN _DIRECTION
+          set _ROW (_ROW - 1)
+          set _DIRECTION _UP
+          ask turtles[set heading _DIRECTION fd 1]
+          ;remove-neighbor-block (row - 1) column _UP
         ]
-        ;if(row + 1 >= min-pycor + 1 and row + 1 <= max-pycor - 1)
-        if(is-inside-border column (row + 1))
+
+        ;if(column + 1 >= (min-pxcor + 1) and column + 1 <= (max-pxcor - 1))
+        if(is-inside-border (_COLUMN + 1) _ROW and is-neighbor-dusty 1 0)
         [
-          show "DOWN"
-          set row (row + 1)
-          set dir _UP
+          ;show "RIGHT"
+          ;print-status row column dir
+          set _REPEATPATCHCOUNTER 0
+          set _COLUMN (_COLUMN + 1)
+          set _DIRECTION _RIGHT
+          ;   setxy ROW COLUMN
+          ask turtles[set heading _DIRECTION fd 1]
+          ;remove-neighbor-block row (column + 1) _RIGHT
+        ]
+
+        ;if(row + 1 >= min-pycor + 1 and row + 1 <= max-pycor - 1)
+        if(is-inside-border _COLUMN (_ROW + 1) and is-neighbor-dusty 0 -1)
+        [
+          ;show "DOWN"
+          ;print-status row column dir
+          set _REPEATPATCHCOUNTER 0
+          set _ROW (_ROW + 1)
+          set _DIRECTION _DOWN
           ;setxy ROW COLUMN
-          ask turtles[setxy column row set heading dir]
-          remove-neighbor-block row column dir
+          ask turtles[set heading _DIRECTION fd 1]
+         ; remove-neighbor-block (row + 1) column _DOWN
         ]
         ;if(column - 1 >= (min-pxcor + 1) and column - 1 <= (max-pxcor - 1))
-        if(is-inside-border (column - 1) row)
+        if(is-inside-border (_COLUMN - 1) _ROW and is-neighbor-dusty -1 0)
         [
-          show "LEFT"
-          set column (column - 1)
-          set dir _RIGHT
+          ;show "LEFT"
+          ;print-status row column dir
+          set _REPEATPATCHCOUNTER 0
+          set _COLUMN (_COLUMN - 1)
+          set _DIRECTION _LEFT
           ;setxy ROW COLUMN
-          ask turtles[setxy column row set heading dir]
-          remove-neighbor-block row column dir
+          ask turtles[set heading _DIRECTION fd 1]
+          ;remove-neighbor-block row (column - 1) _LEFT
         ]
-        ;if(column + 1 >= (min-pxcor + 1) and column + 1 <= (max-pxcor - 1))
-        if(is-inside-border (column + 1) row)
-        [
-          show "RIGHT"
-          set column (column + 1)
-          set dir _DOWN
-          ;   setxy ROW COLUMN
-          ask turtles[setxy column row set heading dir]
-          remove-neighbor-block row column dir
-        ]
+
    ]
+
 end
 
+to find-nearest-dust
+  ask turtles[
+  if _REPEATPATCHCOUNTER > 1 [
+    let target-patch min-one-of (patches in-radius 25 with [pcolor = brown]) [distance myself]
+    if target-patch != nobody  [
+      move-to target-patch
+    ]
+  ] ]
+end
+
+; podriamos calcular la cantidad de veces que pasamos por un patch ya limpio?
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 to-report is-inside-border [x y]
-  ifelse (x >= (min-pxcor + 1)) and (x <= (max-pxcor - 1)) and (y >= (min-pycor + 1)) and (y <= (max-pycor - 1))
+  ifelse (x > (min-pxcor + 1)) and (x < (max-pxcor - 1)) and (y > (min-pycor + 1)) and (y < (max-pycor - 1))
   [report true]
   [report false]
 end
 
-
-to print-status
-   ;show "column:"
-   ;show COLUMN
-  ; show "row:"
-  ; show ROW
-   ;show "DIRECTION"
-  ; show DIRECTION
-
+to-report is-neighbor-dusty [x y]
+  ask turtles[
+    ifelse([pcolor] of patch-at x y = brown)
+    [set ISDUSTY true]
+    [set ISDUSTY false]
+  ]
+  report ISDUSTY
 end
 
+to print-status [row column dir]
+   show "column:"
+   show column
+   show "row:"
+   show row
+   show "DIRECTION"
+   show dir
 
+end
 @#$#@#$#@
 GRAPHICS-WINDOW
 239
