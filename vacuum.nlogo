@@ -9,17 +9,17 @@ to setup
   setup-obstacles
   set direccion 90
 
-  set _UP 0
-  set _DOWN 180
-  set _RIGHT 90
-  set _LEFT 270
-  set ISDUSTY false
-  set _ROW (min-pycor + 1)
-  set _COLUMN (min-pxcor + 1)
-  ask turtles[set heading _UP]
-  set _DIRECTION _UP
-  set _REPEATPATCHCOUNTER 0
-  set _FOUNDDIRECTION 0
+  set _UP 0 ; Para dirigir el heading de la tortuga hacia el norte
+  set _DOWN 180 ; Para dirigir el heading de la tortuga hacia el sur
+  set _RIGHT 90 ; Para dirigir el heading de la tortuga hacia el este
+  set _LEFT 270 ; Para dirigir el heading de la tortuga hacia el oeste
+  set ISDUSTY false ; Booleano que nos indica si un patch esta sucio
+  set _ROW (min-pycor + 1) ; establecemos el valor inicial de fila con la coordenada y mas pequeña + 1 (dentro del recuadro)
+  set _COLUMN (min-pxcor + 1) ; establecemos el valor inicial de columna con la coordenada x mas pequeña + 1 (dentro del recuadro)
+  ask turtles[set heading _UP] ; Se establece la direccion de la tortuga hacia arriba
+  ;set _DIRECTION _UP
+  set _REPEATPATCHCOUNTER 0 ; Contador para saber si la aspiradora se quedo pegada. Si el malor es mayor a 1, provoca que se mueva al patch sucio mas cercano
+  set _FOUNDDIRECTION 0 ; Variable para tener un semaforo cuando para un tick ya se encontró la direccion hacia la cual se dirige la aspiradora
   ;set CURRENT_PCOLOR 0
   ;set obstaculo 32
   set-plot-pen-color brown
@@ -147,11 +147,12 @@ to setup-obstacles
 
 end
 
+; Procedimiento que decide la direccion en la que se va a mover la tortuga y avanza un patch
 to decide-direction
    set _FOUNDDIRECTION 0
    ;show "Starting"
    ;print-status _ROW _COLUMN _DIRECTION
-   set _REPEATPATCHCOUNTER (_REPEATPATCHCOUNTER + 1)
+   set _REPEATPATCHCOUNTER (_REPEATPATCHCOUNTER + 1) ; marca que este patch ya fue visitado en este tick
    if(is-inside-border _COLUMN _ROW)
    [
       vacuum-patch
@@ -164,6 +165,7 @@ to decide-direction
 
 end
 
+; limpiar el patch sobre el que se encuentra la tortuga
 to vacuum-patch
   ask turtles[
      if([pcolor] of patch-at 0 0 = brown)
@@ -176,9 +178,12 @@ to vacuum-patch
   ]
 end
 
+; Mover la tortuga un patch hacia el norte
 to go-up
+  ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
+  ; verifica que el vecino hacia el cual voy a moverme esta sucio
+  ; verifica que ningun otro movimiento fue realizado durante este tick
   if(is-inside-border _COLUMN (_ROW - 1) and is-neighbor-dusty 0 1 and _FOUNDDIRECTION != 1)
-  ;if(is-inside-border (_ROW - 1) _COLUMN  and is-neighbor-dusty 0 1)
   [
     set _REPEATPATCHCOUNTER 0
     set _ROW (_ROW - 1)
@@ -192,9 +197,12 @@ to go-up
   ]
 end
 
+; Mover la tortuga un patch hacia el este
 to go-right
+  ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
+  ; verifica que el vecino hacia el cual voy a moverme esta sucio
+  ; verifica que ningun otro movimiento fue realizado durante este tick
   if(is-inside-border (_COLUMN + 1) _ROW and is-neighbor-dusty 1 0 and _FOUNDDIRECTION != 1)
-  ;if(is-inside-border _ROW (_COLUMN + 1) and is-neighbor-dusty 1 0)
   [
     set _REPEATPATCHCOUNTER 0
     set _COLUMN (_COLUMN + 1)
@@ -208,9 +216,12 @@ to go-right
   ]
 end
 
+; Mover la tortuga un patch hacia el sur
 to go-down
+  ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
+  ; verifica que el vecino hacia el cual voy a moverme esta sucio
+  ; verifica que ningun otro movimiento fue realizado durante este tick
   if(is-inside-border _COLUMN (_ROW + 1) and is-neighbor-dusty 0 -1 and _FOUNDDIRECTION != 1)
-  ;if(is-inside-border (_ROW + 1) _COLUMN  and is-neighbor-dusty 0 -1)
   [
     set _REPEATPATCHCOUNTER 0
     set _ROW (_ROW + 1)
@@ -224,7 +235,11 @@ to go-down
   ]
 end
 
+; Mover la tortuga un patch hacia el oeste
 to go-left
+  ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
+  ; verifica que el vecino hacia el cual voy a moverme esta sucio
+  ; verifica que ningun otro movimiento fue realizado durante este tick
   if(is-inside-border (_COLUMN - 1) _ROW and is-neighbor-dusty -1 0 and _FOUNDDIRECTION != 1)
   ;if(is-inside-border _ROW (_COLUMN - 1) and is-neighbor-dusty -1 0)
   [
@@ -240,12 +255,13 @@ to go-left
   ]
 end
 
+; Encuentra el patch sucio mas cercano a la posicion actual de la aspiradora
 to find-nearest-dust
   ask turtles[
     if _REPEATPATCHCOUNTER > 1 [ ;; No se si aca deberia ir un 1 o un 2
       let target-patch min-one-of (patches in-radius 25 with [pcolor = brown]) [distance myself]
       if target-patch != nobody  [
-        show "SHould i actually be here?: find-nearest-dust"
+        ;show "SHould i actually be here?: find-nearest-dust"
         ;falta verificar aca que si hay un obstaculo entonces que se cambie la direccion de la tortuga: patch-ahead
         face target-patch fd 1
         ; move-to target-patch
@@ -257,7 +273,7 @@ end
 ; podriamos calcular la cantidad de veces que pasamos por un patch ya limpio?
 ; necesitamos la condicion de parada
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
+; verifica si la posicion x y esta dentro de los confines del mapa
 to-report is-inside-border [x y]
   ;ifelse (x > (min-pxcor + 1)) and (x < (max-pxcor - 1)) and (y > (min-pycor + 1)) and (y < (max-pycor - 1))
   ifelse (x > (min-pxcor)) and (x < (max-pxcor)) and (y > (min-pycor)) and (y < (max-pycor))
@@ -265,6 +281,7 @@ to-report is-inside-border [x y]
   [report false]
 end
 
+; verifica si la posicion x y esta "sucia": pcolor cafe
 to-report is-neighbor-dusty [x y]
   ask turtles[
     ifelse([pcolor] of patch-at x y = brown)
