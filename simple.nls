@@ -1,0 +1,94 @@
+; Procedimiento que decide la direccion en la que se va a mover la tortuga y avanza un patch
+to decide-direction-heuristic
+   set _FOUNDDIRECTION 0
+   ;show "Starting"
+   ;print-status _ROW _COLUMN _DIRECTION
+   set _REPEATPATCHCOUNTER (_REPEATPATCHCOUNTER + 1) ; marca que este patch ya fue visitado en este tick
+   if(is-inside-border _COLUMN _ROW)
+   [
+      vacuum-patch
+      go-up
+      go-right
+      go-down
+      go-left
+
+   ]
+
+end
+
+; Mover la tortuga un patch hacia el norte
+to go-up-heuristic
+  ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
+  ; verifica que el vecino hacia el cual voy a moverme esta sucio
+  ; verifica que ningun otro movimiento fue realizado durante este tick
+  if(is-inside-border _COLUMN (_ROW - 1) and is-neighbor-dusty 0 1 and _FOUNDDIRECTION != 1)
+  [
+    set _REPEATPATCHCOUNTER 0
+    set _ROW (_ROW - 1)
+    ;set _DIRECTION _UP
+    ask turtles[set heading _UP fd 1  SHOW "MOVED UP"]
+    set _FOUNDDIRECTION 1
+    ;ask turtles[set heading _UP]
+    ;ask turtles[ fd 1]
+    show "UP"
+    ;print-status _ROW _COLUMN _DIRECTION
+  ]
+end
+
+; Mover la tortuga un patch hacia el este
+to go-right-heuristic
+  ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
+  ; verifica que el vecino hacia el cual voy a moverme esta sucio
+  ; verifica que ningun otro movimiento fue realizado durante este tick
+  if(is-inside-border (_COLUMN + 1) _ROW and is-neighbor-dusty 1 0 and _FOUNDDIRECTION != 1)
+  [
+    set _REPEATPATCHCOUNTER 0
+    set _COLUMN (_COLUMN + 1)
+    ;set _DIRECTION _RIGHT
+    ask turtles[set heading _RIGHT fd 1 SHOW "MOVED RIGHT"]
+    set _FOUNDDIRECTION 1
+    ;ask turtles[set heading _RIGHT ]
+    ;ask turtles[fd 1]
+    show "RIGHT"
+    ;print-status row column dir
+  ]
+end
+
+; Mover la tortuga un patch hacia el sur
+to go-down-heuristic
+  ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
+  ; verifica que el vecino hacia el cual voy a moverme esta sucio
+  ; verifica que ningun otro movimiento fue realizado durante este tick
+  if(is-inside-border _COLUMN (_ROW + 1) and is-neighbor-dusty 0 -1 and _FOUNDDIRECTION != 1)
+  [
+    set _REPEATPATCHCOUNTER 0
+    set _ROW (_ROW + 1)
+    ;set _DIRECTION _DOWN
+    ask turtles[set heading _DOWN fd 1 SHOW "MOVED DOWN"]
+    set _FOUNDDIRECTION 1
+    ;ask turtles[set heading _DOWN ]
+    ;ask turtles[fd 1]
+    show "DOWN"
+    ;print-status row column dir
+  ]
+end
+
+; Mover la tortuga un patch hacia el oeste
+to go-left-heuristic
+  ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
+  ; verifica que el vecino hacia el cual voy a moverme esta sucio
+  ; verifica que ningun otro movimiento fue realizado durante este tick
+  if(is-inside-border (_COLUMN - 1) _ROW and is-neighbor-dusty -1 0 and _FOUNDDIRECTION != 1)
+  ;if(is-inside-border _ROW (_COLUMN - 1) and is-neighbor-dusty -1 0)
+  [
+    set _REPEATPATCHCOUNTER 0
+    set _COLUMN (_COLUMN - 1)
+    ;set _DIRECTION _LEFT
+    ask turtles[set heading _LEFT fd 1 SHOW "MOVED LEFT"]
+    set _FOUNDDIRECTION 1
+    ;ask turtles[set heading _LEFT]
+    ;ask turtles[ fd 1]
+    show "LEFT"
+    ;print-status row column dir
+  ]
+end
