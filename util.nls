@@ -41,10 +41,20 @@ end
 to-report is-neighbor-dusty [x y]
   ask turtles[
     ifelse([pcolor] of patch-at x y = brown)
-    [set ISDUSTY true]
-    [set ISDUSTY false]
+    [set _ISDUSTY true]
+    [set _ISDUSTY false]
   ]
-  report ISDUSTY
+  report _ISDUSTY
+end
+
+; verifica si la posicion x y esta "sucia": pcolor cafe
+to-report is-neighbor-clean [x y]
+  ask turtles[
+    ifelse([pcolor] of patch-at x y = white)
+    [set _ISCLEAN true]
+    [set _ISCLEAN false]
+  ]
+  report _ISCLEAN
 end
 
 to print-status [row column dir]
@@ -64,7 +74,7 @@ to setup-globals
   set _DOWN 180 ; Para dirigir el heading de la tortuga hacia el sur
   set _RIGHT 90 ; Para dirigir el heading de la tortuga hacia el este
   set _LEFT 270 ; Para dirigir el heading de la tortuga hacia el oeste
-  set ISDUSTY false ; Booleano que nos indica si un patch esta sucio
+  set _ISDUSTY false ; Booleano que nos indica si un patch esta sucio
   set _ROW (min-pycor + 1) ; establecemos el valor inicial de fila con la coordenada y mas pequeña + 1 (dentro del recuadro)
   set _COLUMN (min-pxcor + 1) ; establecemos el valor inicial de columna con la coordenada x mas pequeña + 1 (dentro del recuadro)
   ask turtles[set heading _UP] ; Se establece la direccion de la tortuga hacia arriba
@@ -73,6 +83,9 @@ to setup-globals
   set _FOUNDDIRECTION 0 ; Variable para tener un semaforo cuando para un tick ya se encontró la direccion hacia la cual se dirige la aspiradora
   ;set CURRENT_PCOLOR 0
   ;set obstaculo 32
+  set _NEXTDIR _RIGHT
+  set _NEXTDIRCOUNT 0
+  
   set-plot-pen-color brown
   
 end

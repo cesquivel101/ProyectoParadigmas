@@ -1,5 +1,6 @@
+
 ;turtles-own [energy]
-globals[direccion _UP _DOWN _RIGHT _LEFT ISDUSTY _ROW _COLUMN _DIRECTION _REPEATPATCHCOUNTER _FOUNDDIRECTION]; obstaculo]
+globals[direccion _UP _DOWN _RIGHT _LEFT _ISDUSTY _ISCLEAN _ROW _COLUMN _DIRECTION _REPEATPATCHCOUNTER _FOUNDDIRECTION]; obstaculo]
 ;user-message (word "There are " count turtles " turtles.")
 
 __includes["heuristicasimple.nls" "simple.nls" "util.nls"]
@@ -9,22 +10,7 @@ to setup
   setup-dust
   setup-vacuum
   setup-obstacles
-  set direccion 90
-
-  set _UP 0 ; Para dirigir el heading de la tortuga hacia el norte
-  set _DOWN 180 ; Para dirigir el heading de la tortuga hacia el sur
-  set _RIGHT 90 ; Para dirigir el heading de la tortuga hacia el este
-  set _LEFT 270 ; Para dirigir el heading de la tortuga hacia el oeste
-  set ISDUSTY false ; Booleano que nos indica si un patch esta sucio
-  set _ROW (min-pycor + 1) ; establecemos el valor inicial de fila con la coordenada y mas pequeña + 1 (dentro del recuadro)
-  set _COLUMN (min-pxcor + 1) ; establecemos el valor inicial de columna con la coordenada x mas pequeña + 1 (dentro del recuadro)
-  ask turtles[set heading _UP] ; Se establece la direccion de la tortuga hacia arriba
-  ;set _DIRECTION _UP
-  set _REPEATPATCHCOUNTER 0 ; Contador para saber si la aspiradora se quedo pegada. Si el malor es mayor a 1, provoca que se mueva al patch sucio mas cercano
-  set _FOUNDDIRECTION 0 ; Variable para tener un semaforo cuando para un tick ya se encontró la direccion hacia la cual se dirige la aspiradora
-  ;set CURRENT_PCOLOR 0
-  ;set obstaculo 32
-  set-plot-pen-color brown
+  setup-globals
   reset-ticks
 end
 ;(min-pxcor + 1) (max-pycor - 1)
@@ -36,10 +22,8 @@ to go
   tick
 end
 
-to move-vacuum-simple
-  find-nearest-dust
-  decide-direction
-end
+
+
 
 to move-vacuum
 

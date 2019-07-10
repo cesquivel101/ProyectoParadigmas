@@ -1,5 +1,10 @@
+to move-vacuum-simple
+  find-nearest-dust
+  decide-direction
+end
+
 ; Procedimiento que decide la direccion en la que se va a mover la tortuga y avanza un patch
-to decide-direction-heuristic
+to decide-direction
    set _FOUNDDIRECTION 0
    ;show "Starting"
    ;print-status _ROW _COLUMN _DIRECTION
@@ -17,7 +22,7 @@ to decide-direction-heuristic
 end
 
 ; Mover la tortuga un patch hacia el norte
-to go-up-heuristic
+to go-up
   ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
   ; verifica que el vecino hacia el cual voy a moverme esta sucio
   ; verifica que ningun otro movimiento fue realizado durante este tick
@@ -36,7 +41,7 @@ to go-up-heuristic
 end
 
 ; Mover la tortuga un patch hacia el este
-to go-right-heuristic
+to go-right
   ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
   ; verifica que el vecino hacia el cual voy a moverme esta sucio
   ; verifica que ningun otro movimiento fue realizado durante este tick
@@ -55,7 +60,7 @@ to go-right-heuristic
 end
 
 ; Mover la tortuga un patch hacia el sur
-to go-down-heuristic
+to go-down
   ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
   ; verifica que el vecino hacia el cual voy a moverme esta sucio
   ; verifica que ningun otro movimiento fue realizado durante este tick
@@ -74,7 +79,7 @@ to go-down-heuristic
 end
 
 ; Mover la tortuga un patch hacia el oeste
-to go-left-heuristic
+to go-left
   ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
   ; verifica que el vecino hacia el cual voy a moverme esta sucio
   ; verifica que ningun otro movimiento fue realizado durante este tick
