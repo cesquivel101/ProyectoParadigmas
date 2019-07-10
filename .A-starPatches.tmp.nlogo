@@ -3,6 +3,11 @@ globals
   p-valids   ; Valid Patches for moving not wall)
   Start      ; Starting patch
   Final-Cost ; The final cost of the path given by A*
+
+
+
+  Destination
+
 ]
 
 patches-own
@@ -39,17 +44,18 @@ to setup
 ;    set pcolor brown
 ;    ask patches in-radius random 10 [set pcolor 32]
 ;  ]
-
+  setup-obstacles
 
   ; Se the valid patches (not wall)
   set p-valids patches with [pcolor != 32]
+  ;show p-valids
   ; Create a random start
   ;set Start one-of p-valids
   ;ask Start [set pcolor gray]
   ; Create a turtle to draw the path (when found)
   ;crt 1
   setup-vacuum
-  setup-obstacles
+  setup-destination
 end
 
 to setup-vacuum
@@ -76,6 +82,13 @@ to setup-obstacles
   ]
   [ set pcolor 32 ]
 
+end
+
+to setup-destination
+  ask turtle 0[
+    set Destination min-one-of (patches in-radius 25 with [pcolor = brown]) [distance myself]
+    show Destination
+  ]
 end
 
 ; Patch report to estimate the total expected cost of the path starting from
@@ -196,16 +209,16 @@ end
 to Look-for-Goal
 
 
-
+  ; AQUÍ SE ESTABLECE EL GOAL AL QUE SE DIRIGE LA TORTUGA. DEBE DEJAR DE SER RANDOM
   ; Take one random Goal
   ;let Goal one-of p-valids ; ************************************
 
+let Goal Destination
 
 
 
 
-
-
+  ; LLAMADO A LA FUNCIÓN A* PARA HACER UN CAMINO
   ; Compute the path between Start and Goal
   let path  A* Start Goal p-valids
   ; If any...
@@ -214,18 +227,19 @@ to Look-for-Goal
     ;ask turtle 0 [set color (lput 150 (n-values 3 [100 + random 155]))]
 
 
-    ask turtle 0 [pen-down]
+    ask turtle 0 [clean]
 
 
+    ; IMPRIME EL RASTRO DEL CAMINO TOMADO
 
-    ; Move the turtle on the path stamping its shape in every patch
-    foreach path [ ?1 ->
-      ask turtle 0 [
-        move-to ?1
-
-
-]];stamp] ]
-
+    ; "POR CADA PATH 'X', DIGALE A LA TORTUGA QUE SE MUEVA A X"
+     foreach path [ p ->
+       ask turtle 0 [
+         move-to p
+         ;stamp
+        ;set pcolor white
+        clean
+    ] ]
 
     ; Set the Goal and the new Start point
     set Start Goal
@@ -234,12 +248,12 @@ end
 
 ; Auxiliary procedure to clear the paths in the world
 to clean
-  ;cd
-  ;ask patches with [pcolor != 32] [set pcolor white]
-  ;ask Start [set pcolor white]
+;  cd
+;  ask patches with [pcolor != 32  and pcolor != white] [set pcolor white]
+;  ask Start [set pcolor white]
   ask turtle 0 [
     if pcolor = brown [ set pcolor white]
-    pen-down
+    ;pen-down
   ]
 end
 @#$#@#$#@
@@ -347,7 +361,7 @@ obstacles
 obstacles
 0
 100
-99.0
+100.0
 1
 1
 NIL
