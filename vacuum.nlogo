@@ -1,4 +1,3 @@
-
 ;turtles-own [energy]
 globals[direccion _UP _DOWN _RIGHT _LEFT _ISDUSTY _ISCLEAN _ROW _COLUMN _DIRECTION _REPEATPATCHCOUNTER _FOUNDDIRECTION]; obstaculo]
 ;user-message (word "There are " count turtles " turtles.")
@@ -18,7 +17,8 @@ to go
   ;vacuum-dust
   ;move-vacuum
   ;move-vacuum-recursive (min-pycor + 2) (min-pxcor + 2) _UP
-  move-vacuum-simple
+  ;move-vacuum-simple
+  move-vacuum-simple-heuristic
   tick
 end
 

@@ -1,127 +1,112 @@
-globals[ _ISAHEADDUSTY _NEXTDIR _NEXTDIRCOUNT _TURNVACUUM]; obstaculo]
+globals[ _FOUNDNEARESTDUST _ISAHEADDUSTY _WHITEPATCHCOUNTER _RIGHTTURNCOUNTER _ISINSIDEBORDERRELATIVE _DIR _FOUNDDIR _NEXTDIR _NEXTDIRCOUNT _TURNVACUUM _CURRENTX _CURRENTY]; obstaculo]
 
 to move-vacuum-simple-heuristic
-  find-nearest-dust
-  decide-direction
-end
-
-to follow-left-boundary
-  ;if(is-inside-border _COLUMN (_ROW - 1) and is-neighbor-dusty 0 1 and _FOUNDDIRECTION != 1)
-  
+  move-forward
 end
 
 to move-forward
-  ifelse(is-patch-ahead-dusty)
-      [fd 1]
-      [right 90]
+  vacuum-patch
+
+  ;ifelse(is-patch-ahead-dusty and _RIGHTTURNCOUNTER = 0)
+   ;print word "_WHITEPATCHCOUNTER:" _WHITEPATCHCOUNTER
+   if(_WHITEPATCHCOUNTER > 1)
+  ;;probablemente deberia mover esto para trackear bien los ticks
+   [show "wpc > 1" find-nearest-dust-heuristic set _WHITEPATCHCOUNTER 0 set _RIGHTTURNCOUNTER 1 set _FOUNDDIR true set _FOUNDNEARESTDUST true]
+   ifelse(is-patch-ahead-possible and _RIGHTTURNCOUNTER = 0)
+      [
+        ;;show "moved ahead"
+        set _RIGHTTURNCOUNTER (_RIGHTTURNCOUNTER + 1)
+        ask turtles[set _FOUNDDIR 0 fd 1]
+      ]
+      [
+        try-left 
+        try-right
+        if(is-patch-ahead-white or is-patch-ahead-obstacle)[
+          
+           set _WHITEPATCHCOUNTER (_WHITEPATCHCOUNTER + 1)
+        ]
+      ]
 end
 
-to turn-vacuum
-  
+; De alguna manera tengo que decidir el heading dependiendo de las coordenadas de la tortuga, despues de que esta hace un find-nearest-dust. Pareciera que el heading queda "mal" despues de moverme de manera "libre"
+; hacia el dust mas cercano y por eso empieza a brincar 
+
+
+to try-left
+   ask turtles[left 90]
+   set _FOUNDDIR true
+   ;;;show "Tried left"
+   set _RIGHTTURNCOUNTER 0
+   ;if(not is-patch-ahead-dusty)
+   ifelse(not is-patch-ahead-dusty)[
+     set _FOUNDDIR false
+     ask turtles[right 90]
+     ;;show "Returned to right"
+     set _RIGHTTURNCOUNTER (_RIGHTTURNCOUNTER + 1)
+   ]
+   [set _WHITEPATCHCOUNTER 0 set _FOUNDNEARESTDUST false]
+end
+
+to try-right
+   ;;show "Tried right"
+   ifelse(not _FOUNDDIR and not _FOUNDNEARESTDUST)[
+      ask turtles[right 90]
+   ]
+  [set _FOUNDNEARESTDUST false]
+end
+;32
+to-report is-patch-ahead-obstacle
+  ask turtles[
+  ask patch-ahead 1[
+    ifelse(pcolor = 32)
+        [set _ISAHEADDUSTY true]
+        [set _ISAHEADDUSTY false]
+  ]]
+  report _ISAHEADDUSTY
+end
+
+to-report is-patch-ahead-white
+  ask turtles[
+  ask patch-ahead 1[
+    ifelse(pcolor = white)
+        [set _ISAHEADDUSTY true]
+        [set _ISAHEADDUSTY false]
+  ]]
+  report _ISAHEADDUSTY
 end
 
 to-report is-patch-ahead-dusty
+  ask turtles[
   ask patch-ahead 1[
     ifelse(pcolor = brown)
         [set _ISAHEADDUSTY true]
         [set _ISAHEADDUSTY false]
-  ]
+  ]]
   report _ISAHEADDUSTY
 end
 
-
-; Procedimiento que decide la direccion en la que se va a mover la tortuga y avanza un patch
-to decide-direction-heuristic
-   set _FOUNDDIRECTION 0
-   ;show "Starting"
-   ;print-status _ROW _COLUMN _DIRECTION
-   set _REPEATPATCHCOUNTER (_REPEATPATCHCOUNTER + 1) ; marca que este patch ya fue visitado en este tick
-   if(is-inside-border _COLUMN _ROW)
-   [
-      vacuum-patch
-      go-up
-      go-right
-      go-down
-      go-left
-
-   ]
+to-report is-patch-ahead-possible
+  ask turtles[
+  ask patch-ahead 1[
+    ifelse(pcolor = brown or pcolor = white)
+        [set _ISAHEADDUSTY true]
+        [set _ISAHEADDUSTY false]
+  ]]
+  report _ISAHEADDUSTY
 end
 
-; Mover la tortuga un patch hacia el norte
-to go-up-heuristic
-  ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
-  ; verifica que el vecino hacia el cual voy a moverme esta sucio
-  ; verifica que ningun otro movimiento fue realizado durante este tick
-  if(is-inside-border _COLUMN (_ROW - 1) and is-neighbor-dusty 0 1 and _FOUNDDIRECTION != 1)
-  [
-    set _REPEATPATCHCOUNTER 0
-    set _ROW (_ROW - 1)
-    ;set _DIRECTION _UP
-    ask turtles[set heading _UP fd 1  SHOW "MOVED UP"]
-    set _FOUNDDIRECTION 1
-    ;ask turtles[set heading _UP]
-    ;ask turtles[ fd 1]
-    show "UP"
-    ;print-status _ROW _COLUMN _DIRECTION
-    
-    set _NEXTDIR _RIGHT
-  ]
-end
-
-; Mover la tortuga un patch hacia el este
-to go-right-heuristic
-  ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
-  ; verifica que el vecino hacia el cual voy a moverme esta sucio
-  ; verifica que ningun otro movimiento fue realizado durante este tick
-  if(is-inside-border (_COLUMN + 1) _ROW and is-neighbor-dusty 1 0 and _FOUNDDIRECTION != 1)
-  [
-    set _REPEATPATCHCOUNTER 0
-    set _COLUMN (_COLUMN + 1)
-    ;set _DIRECTION _RIGHT
-    ask turtles[set heading _RIGHT fd 1 SHOW "MOVED RIGHT"]
-    set _FOUNDDIRECTION 1
-    ;ask turtles[set heading _RIGHT ]
-    ;ask turtles[fd 1]
-    show "RIGHT"
-    ;print-status row column dir
-  ]
-end
-
-; Mover la tortuga un patch hacia el sur
-to go-down-heuristic
-  ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
-  ; verifica que el vecino hacia el cual voy a moverme esta sucio
-  ; verifica que ningun otro movimiento fue realizado durante este tick
-  if(is-inside-border _COLUMN (_ROW + 1) and is-neighbor-dusty 0 -1 and _FOUNDDIRECTION != 1)
-  [
-    set _REPEATPATCHCOUNTER 0
-    set _ROW (_ROW + 1)
-    ;set _DIRECTION _DOWN
-    ask turtles[set heading _DOWN fd 1 SHOW "MOVED DOWN"]
-    set _FOUNDDIRECTION 1
-    ;ask turtles[set heading _DOWN ]
-    ;ask turtles[fd 1]
-    show "DOWN"
-    ;print-status row column dir
-  ]
-end
-
-; Mover la tortuga un patch hacia el oeste
-to go-left-heuristic
-  ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
-  ; verifica que el vecino hacia el cual voy a moverme esta sucio
-  ; verifica que ningun otro movimiento fue realizado durante este tick
-  if(is-inside-border (_COLUMN - 1) _ROW and is-neighbor-dusty -1 0 and _FOUNDDIRECTION != 1)
-  ;if(is-inside-border _ROW (_COLUMN - 1) and is-neighbor-dusty -1 0)
-  [
-    set _REPEATPATCHCOUNTER 0
-    set _COLUMN (_COLUMN - 1)
-    ;set _DIRECTION _LEFT
-    ask turtles[set heading _LEFT fd 1 SHOW "MOVED LEFT"]
-    set _FOUNDDIRECTION 1
-    ;ask turtles[set heading _LEFT]
-    ;ask turtles[ fd 1]
-    show "LEFT"
-    ;print-status row column dir
+; Encuentra el patch sucio mas cercano a la posicion actual de la aspiradora
+to find-nearest-dust-heuristic
+  ask turtles[
+    if _WHITEPATCHCOUNTER > 1 [ ;; No se si aca deberia ir un 1 o un 2
+      let target-patch min-one-of (patches in-radius 25 with [pcolor = brown]) [distance myself]
+      if target-patch != nobody  [
+        show "find nearest dust"
+        ;show "SHould i actually be here?: find-nearest-dust"
+        ;falta verificar aca que si hay un obstaculo entonces que se cambie la direccion de la tortuga: patch-ahead
+        face target-patch fd 1
+        ; move-to target-patch
+      ]
+    ]
   ]
 end
