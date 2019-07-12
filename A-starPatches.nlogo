@@ -1,321 +1,241 @@
 globals
 [
-  p-valids   ; Valid Patches for moving not wall)
-  Start      ; Starting patch
-  Final-Cost ; The final cost of the path given by A*
-  rowCounter
-  columnCounter1
-  columnCounter2
-  filas
-
-  Destination
-
+  validPatches ; patches que representan las posiciones válidas del mapa (sin obstáculos)
+  Start        ; patch de la posición inicial de la aspiradora
+  finalCost    ; costo final del camino que calcula A*
+  currentRow   ; fila actual en que se encuentra la aspiradora
+  Destination  ; posición a la que se va a mover la aspiradora en cada tick
 ]
 
-patches-own
+patches-own  ; variables de patches utilizadas en A*
 [
-  father     ; Previous patch in this partial path
-  Cost-path  ; Stores the cost of the path to the current patch
-  visited?   ; has the path been visited previously? That is,
-             ; at least one path has been calculated going through this patch
-  active?    ; is the patch active? That is, we have reached it, but
-             ; we must consider it because its children have not been explored
+  father     ; patch "padre" o anterior al patch actual
+  pathCost   ; costo del camino hasta el patch actual
+  visited?   ; variable booleana. True si se ha pasado por este patch, false si no
+  active?    ; patch que ha sido visitado, pero cuyos hijos no se han explorado
 ]
 
-; Prepares the world and starting point
+
 to setup
   clear-all
-  ; Initial values of patches for A*
-  ask patches
+
+  ask patches ; valores iniciales para los patches utilizados en A*
   [
-    set father nobody
-    set Cost-path 0
-    set visited? false
-    set active? false
-    set rowCounter 1
-    set columnCounter1 1
-    set columnCounter2 max-pycor - 1
-    set filas 1
+    set father     nobody
+    set pathCost  0
+    set visited?   false
+    set active?    false
+    set currentRow 1
   ]
 
-
-  ask patches [set pcolor brown]
-
-
-
-
-  ; Generation of random obstacles
-;  ask n-of 10 patches
-;  [
-;    set pcolor brown
-;    ask patches in-radius random 10 [set pcolor 32]
-;  ]
-  setup-obstacles
-
-  ; Se the valid patches (not wall)
-  set p-valids patches with [pcolor != 32]
-  ;show p-valids
-  ; Create a random start
-  ;set Start one-of p-valids
-  ;ask Start [set pcolor gray]
-  ; Create a turtle to draw the path (when found)
-  ;crt 1
+  ask patches [set pcolor brown]               ; se "ensucian" los patches que representan el piso
+  setup-obstacles                              ; colocación de obstáculos
+  set validPatches patches with [pcolor != 32] ; los patches válidos para moverse (no obstáculos)
   setup-vacuum
-  ;setup-destination
 end
 
+
+; creación de la aspiradora
 to setup-vacuum
   create-turtles 1
-  ask turtles [set color gray ]
+  ask turtles [set color red ]
   set-default-shape turtles "target"
-  ;ask turtles [set shape "circle"]
-  ask turtles [setxy (min-pxcor + 1) (max-pycor - 1)]
-  ask turtles [set Start patch-here]
-  ;ask turtles [set heading 90]
+  ask turtles [setxy (min-pxcor + 1) (max-pycor - 1)] ; se coloca en la esquina superior izquierda del mapa
+  ask turtles [set Start patch-here]                  ; el patch de inicio es en el que se encuentra la aspiradora inicialmente
 end
 
+
+; creación de obstáculos
 to setup-obstacles
-  ;ask  patches [
-    ;if random 100 < obstacles [ set pcolor 32 ]
-    ;ask n-of obstacles patches [set pcolor 32]
+  ask n-of 10 patches
+  [
+    set pcolor brown
+    ask patches in-radius random 5 [set pcolor 32]
+  ]
   repeat obstacles [ask one-of patches [ set pcolor 32 ]]
-  ;]
-  ask patches with [
+
+  ask patches with [     ; creación de paredes en los bordes del mapa
     pxcor = min-pxcor or
     pxcor = max-pxcor or
     pycor = min-pycor or
     pycor = max-pycor
   ]
-  [ set pcolor 32 ]
+  [ set pcolor 32 ]      ; color de los obstáculos
 
 end
 
-;to setup-destination
-;  ask turtle 0[
-;    ;set Destination patch-here
-;    ;set Destination min-one-of (patches in-radius 25 with [pcolor = brown]) [distance myself]
-;    set Destination min-one-of (patches in-radius 10 with [pxcor = 1 and pycor = 28 and pcolor = brown]) [distance myself]
-;    show Destination
-;  ]
-;end
 
+; inicia el destino en cada movimiento de la aspiradora,
+; hace el llamado a la función A* y mueve la aspiradora
+to go
+  ; guarda en la variable Destination la posición del
+  ; patch a la que va a moverse
+  setup-destination
+
+  ; llamado a la función A* para calcular el camino
+  ; más corto desde Start hasta Destination pasando
+  ; por patches que no sean obstáculo
+  ; path es la lista de patches a recorrer
+  let path  A* Start Destination validPatches
+
+  ; si se encontró un camino válido
+  if path != false [
+    ask turtle 0 [clean] ; la aspiradora limpia su posición actual
+    ; por cada pathc "p" a recorrer en path,
+    ; la aspiradora se mueve hacia él y lo aspira
+    foreach path [ p ->
+      ask turtle 0 [
+        move-to p
+        clean
+      ]
+    ]
+    ; el patch de inicio, donde se encuentra la aspiradora se actualiza,
+    ; siendo la posición de destino que acaba de alcanzar
+    set Start Destination
+  ]
+end
+
+
+; decide cuál es patch más cercano al que se tiene que
+; mover en cada tick. Visita todos los de la fila actual (currentRow)
+; y repite el proceso en la siguiente fila
 to setup-destination
   ask turtle 0[
-    ;set Destination patch-here
-    let r 0
-    let c 0
-
-    while [rowCounter < max-pxcor  ] [ ; for 1
-
-      ifelse (rowCounter mod 2 = 0) [ ; if
-        ;set columnCounter1 1
-        while [columnCounter1 < max-pycor  ] [ ; for 2
-           ;set Destination (patch-set patch-at rowCounter columnCounter1)
-           set Destination min-one-of (patches in-radius 50 with [pxcor = rowCounter and pycor = columnCounter1 and pcolor != 32]) [distance myself]
-           show Destination
-          type "1Destination es " type Destination print ""
-           set columnCounter1 columnCounter1 + 1
-          type "Destino1: fila " type rowCounter type "columna " type columnCounter1 print ""
-           stop
-        ]
-        set columnCounter1 1
+    if (currentRow < max-pxcor) [ ; si no se ha sobrepasado la última fila
+      ; si en la fila actual hay algún patch sucio
+      ifelse any? patches with [pxcor = currentRow and pcolor = brown][
+        ; el próximo destino es el patch sucio más cercano a la aspiradora en la fila actual,
+        ; en el radio establecido y se guarda en la variable Destination, para
+        ; ser utilizado en la función go
+        set Destination min-one-of (patches in-radius 50 with [pxcor = currentRow and pcolor = brown]) [distance myself]
       ]
-
-      [while [columnCounter2 > 0  ][ ; else for 3
-        ;set Destination (patch-set patch-at rowCounter columnCounter2)
-        set Destination min-one-of (patches in-radius 50 with [pxcor = rowCounter and pycor = columnCounter2 and pcolor != 32]) [distance myself]
-        show Destination
-        type "2Destination es " type Destination print ""
-        set columnCounter2 columnCounter2 - 1
-        type "Destino2: fila " type rowCounter type "columna " type columnCounter2 print ""
-        stop
-      ]
-      set columnCounter2 max-pycor - 1
-    ]
-
-
-    show Destination
-    set rowCounter rowCounter + 1
-    stop
-  ]
-        ;set Destination min-one-of (patches in-radius 4 with [pcolor = brown]) [distance myself]
-    ;set Destination patch-at 0 0
-  ]
-end
-
-to setup-destination2
-  ask turtle 0[
-    if (filas < max-pxcor) [
-      ifelse any? patches with [pxcor = filas and pcolor = brown][
-        set Destination min-one-of (patches in-radius 50 with [pxcor = filas and pcolor = brown]) [distance myself]
-      ]
-      [set filas filas + 1]
+      ; si no hay patches sucios en la fila actual el contador pasa a la siguiente fila
+      [set currentRow currentRow + 1]
     ]
   ]
 end
 
-; Patch report to estimate the total expected cost of the path starting from
-; in Start, passing through it, and reaching the #Goal
-to-report Total-expected-cost [#Goal]
-  report Cost-path + Heuristic #Goal
+
+; calcula y retorna el costo de un camino desde la posición actual de
+; la aspiradora hasta el destino en #Destination
+to-report travelCost [#Destination]
+  report pathCost + distanceTo #Destination
 end
 
-; Patch report to reurtn the heuristic (expected length) from the current patch
-; to the #Goal
-to-report Heuristic [#Goal]
+
+; retorna la distancia que hay desde el patch actual hasta #Goal
+to-report distanceTo [#Goal]
   report distance #Goal
 end
 
-; A* algorithm. Inputs:
-;   - #Start     : starting point of the search.
-;   - #Goal      : the goal to reach.
-;   - #valid-map : set of agents (patches) valid to visit.
-; Returns:
-;   - If there is a path : list of the agents of the path.
-;   - Otherwise          : false
 
-to-report A* [#Start #Goal #valid-map]
-  ; clear all the information in the agents
-  ask #valid-map with [visited?]
+; función A*. #Start es el punto inicial en que se encuentra la aspiradora
+; #Goal es el patch de destino al que se quiere llegar
+; valid-Patches es la lista de patches por las que se puede mover.
+; Si se encuentra un camino válido se retorna una lista de patches que
+; conforman el camino de #Start hacia #Goal. Si no, retorna false
+to-report A* [#Start #Goal valid-Pactches]
+  ; se reinician las variables de cada patch
+  ask valid-Pactches with [visited?]
   [
     set father nobody
-    set Cost-path 0
+    set pathCost 0
     set visited? false
     set active? false
   ]
-  ; Active the staring point to begin the searching loop
+  ; la posición inicial #Start se marca como visitada
+  ; y activa (para explorar sus hijos) y su padre es ella misma
   ask #Start
   [
     set father self
     set visited? true
     set active? true
   ]
-  ; exists? indicates if in some instant of the search there are no options to
-  ; continue. In this case, there is no path connecting #Start and #Goal
+  ; la variable local exists? indica si existen patches que conecten a #Start
+  ; con #Goal
   let exists? true
-  ; The searching loop is executed while we don't reach the #Goal and we think
-  ; a path exists
+  ; mientras no se haya alcanzado #Goal y exista un camino
   while [not [visited?] of #Goal and exists?]
   [
-    ; We only work on the valid pacthes that are active
-    let options #valid-map with [active?]
-    ; If any
-    ifelse any? options
+    ; se crea la variable local options que contiene los patches
+    ; por los que se pueda mover y que tengan hijos no visitados
+    let options valid-Pactches with [active?]
+
+    ifelse any? options ; si existe algún patch en options
     [
-      ; Take one of the active patches with minimal expected cost
-      ask min-one-of options [Total-expected-cost #Goal]
+      ; se toma de options el valor que tenga el costo mínimo
+      ; desde la posición actual hasta #Goal
+      ask min-one-of options [travelCost #Goal]
       [
-        ; Store its real cost (to reach it) to compute the real cost
-        ; of its children
-        let Cost-path-father Cost-path
-        ; and deactivate it, because its children will be computed right now
+        ; se guarda en la variable local pathCost-father el costo del camino del
+        ; patch padre hasta el patch actual para calcular el costo de sus patches hijos
+        let pathCost-father pathCost
+        ; el patch padre se pone como no activo para empezar a calcular a sus hijos (sus vecinos)
         set active? false
-        ; Compute its valid neighbors
-        let valid-neighbors neighbors with [member? self #valid-map]
+        ; valid-neighbors son los vecinos del patch padre que sean válidos (no obstáculos)
+        let valid-neighbors neighbors with [member? self valid-Pactches]
         ask valid-neighbors
         [
-          ; There are 2 types of valid neighbors:
-          ;   - Those that have never been visited (therefore, the
-          ;       path we are building is the best for them right now)
-          ;   - Those that have been visited previously (therefore we
-          ;       must check if the path we are building is better or not,
-          ;       by comparing its expected length with the one stored in
-          ;       the patch)
-          ; One trick to work with both type uniformly is to give for the
-          ; first case an upper bound big enough to be sure that the new path
-          ; will always be smaller.
-          let t ifelse-value visited? [ Total-expected-cost #Goal] [2 ^ 20]
-          ; If this temporal cost is worse than the new one, we substitute the
-          ; information in the patch to store the new one (with the neighbors
-          ; of the first case, it will be always the case)
-          if t > (Cost-path-father + distance myself + Heuristic #Goal)
+          ; p representa un patch que nunca ha sido visitado. Se compara el costo
+          ; del camino entre él y su destino con un valor infinito (un millón),
+          ; para que p siempre sea de menor costo y por lo tanto, un mejor camino
+          let p ifelse-value visited? [ travelCost #Goal] [1000000]
+          ; si el costo de p es más alto que el que se calcula a continuación,
+          ; se sustituye la información en el patch por la del nuevo calculado
+          if p > (pathCost-father + distance myself + distanceTo #Goal)
           [
             ; The current patch becomes the father of its neighbor in the new path
+            ; el patch actual se convierte en el padre de sus vecinos para el cálculo del nuevo camino
             set father myself
-            set visited? true
-            set active? true
-            ; and store the real cost in the neighbor from the real cost of its father
-            set Cost-path Cost-path-father + distance father
-            set Final-Cost precision Cost-path 3
+            set visited? true ; se declara como visitado
+            set active? true ; está activo, pues hay que evaluar sus patches hijos
+            ; se guarda en el costo de su camino el costo de su padre, más la distancia entre ambos
+            set pathCost pathCost-father + distance father
+            ;set finalCost precision pathCost 3
+            set finalCost pathCost ; se asigna como valor de costo final del camino
           ]
         ]
       ]
     ]
-    ; If there are no more options, there is no path between #Start and #Goal
+    ; else. Si no existen patches en options, significa que no existe un camino entre
+    ; #Start y #Goal. Entonces, exists? tiene valor false
     [
       set exists? false
     ]
   ]
-  ; After the searching loop, if there exists a path
+  ; Si fue posible encontrar un camino
   ifelse exists?
   [
-    ; We extract the list of patches in the path, form #Start to #Goal
-    ; by jumping back from #Goal to #Start by using the fathers of every patch
-    let current #Goal
-    set Final-Cost (precision [Cost-path] of #Goal 3)
-    let rep (list current)
-    While [current != #Start]
+    ; se extrae la lista de patches en el camino, recorriendo desde #Goal
+    ; hasta #Start, usando el patch padre de cada patch
+    let currentPatch #Goal
+    ;set finalCost (precision [pathCost] of #Goal 3)
+    ; el costo final es el costo del camino desde #Goal
+    set finalCost [pathCost] of #Goal
+    ; recorrido de la lista de patches que representa el camino
+    let path (list currentPatch)
+    While [currentPatch != #Start] ; mientras no se llegue a #Start
     [
-      set current [father] of current
-      set rep fput current rep
+      ; el patch actual cambia al padre del patch anterior
+      set currentPatch [father] of currentPatch
+      ; se agrega al inicio de la lista path el path actual
+      set path fput currentPatch path
     ]
-    report rep
+    ; por último, se retorna el camino
+    report path
   ]
   [
-    ; Otherwise, there is no path, and we return False
+    ; si no se encontró un camino, retorna false
     report false
   ]
 end
 
 
-; Axiliary procedure to lunch the A* algorithm between random patches
-to Look-for-Goal
-
-
-  ; AQUÍ SE ESTABLECE EL GOAL AL QUE SE DIRIGE LA TORTUGA. DEBE DEJAR DE SER RANDOM
-  ; Take one random Goal
-  ;let Goal one-of p-valids ; ************************************
-setup-destination2
-let Goal Destination
-type "Goal: " type Goal print ""
-
-
-
-  ; LLAMADO A LA FUNCIÓN A* PARA HACER UN CAMINO
-  ; Compute the path between Start and Goal
-  let path  A* Start Goal p-valids
-  ; If any...
-  if path != false [
-    ; Take a random color to the drawer turtle
-    ;ask turtle 0 [set color (lput 150 (n-values 3 [100 + random 155]))]
-
-
-    ask turtle 0 [clean]
-
-
-    ; IMPRIME EL RASTRO DEL CAMINO TOMADO
-    ; "POR CADA PATH 'X', DIGALE A LA TORTUGA QUE SE MUEVA A X"
-     foreach path [ p ->
-       ask turtle 0 [
-         move-to p
-         ;stamp
-        ;set pcolor white
-        clean
-    ] ]
-
-    ; Set the Goal and the new Start point
-    set Start Goal
-  ]
-end
-
-; Auxiliary procedure to clear the paths in the world
+; aspirado del patch en que se encuentra la aspiradora
 to clean
-;  cd
-;  ask patches with [pcolor != 32  and pcolor != white] [set pcolor white]
-;  ask Start [set pcolor white]
   ask turtle 0 [
     if pcolor = brown [ set pcolor white]
-    pen-down
+    pen-down ; dibujado del rastro del camino de la aspiradora
   ]
 end
 @#$#@#$#@
@@ -349,9 +269,9 @@ ticks
 BUTTON
 20
 14
-83
+84
 47
-setup
+Setup
 setup
 NIL
 1
@@ -364,12 +284,12 @@ NIL
 1
 
 BUTTON
-105
-14
-168
-47
-Next
-Look-for-Goal
+107
+15
+189
+48
+One step
+go
 NIL
 1
 T
@@ -385,8 +305,8 @@ BUTTON
 61
 126
 94
-Next
-Look-for-Goal
+Cycle
+go
 T
 1
 T
