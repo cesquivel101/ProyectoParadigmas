@@ -1,12 +1,12 @@
-globals[ _FOUNDNEARESTDUST _ISLEFTPATCHDUSTY _REPORTVARIABLE _NOROUTECOUNTER];
+globals[_ISLEFTPATCHDUSTY _REPORTVARIABLE _NOROUTECOUNTER];
 
 to setup-left-hand
-   set _NOROUTECOUNTER 0
-  set _FOUNDNEARESTDUST false
+  set _NOROUTECOUNTER 0
   set _ISLEFTPATCHDUSTY false
+  ask turtles[set heading _RIGHT]
 end
 
-to move-vacuum-simple-heuristic
+to move-vacuum-left-hand
   vacuum-dust
   if(not is-left-patch-obstacle-or-white)
   [ask turtles[left 90] set _NOROUTECOUNTER 0]

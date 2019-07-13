@@ -8,6 +8,7 @@ to setup-simple
   set _REPEATPATCHCOUNTER 0 ; Contador para saber si la aspiradora se quedo pegada. Si el malor es mayor a 1, provoca que se mueva al patch sucio mas cercano
   set _FOUNDDIRECTION 0 ; Variable para tener un semaforo cuando para un tick ya se encontró la direccion hacia la cual se dirige la aspiradora
   set _ISDUSTY false ; Booleano que nos indica si un patch esta sucio
+  ask turtles[set heading _RIGHT]
 end
 
 

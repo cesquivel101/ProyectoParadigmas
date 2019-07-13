@@ -1,28 +1,42 @@
 globals[direccion  _UP _DOWN _RIGHT _LEFT]; obstaculo]
 
-__includes["leftHand.nls" "simple.nls" "util.nls"]
+__includes["leftHand.nls" "simple.nls" "util.nls" "a_asterisco.nls"]
 
 to setup
   clear-all
   setup-dust
   setup-vacuum
   setup-obstacles
-  setup-simple
-  setup-left-hand
-
+  if(tipo-ejecucion = "simple")
+  [setup-simple]
+  if(tipo-ejecucion = "mano-izquierda")
+  [setup-left-hand]
+  if(tipo-ejecucion = "a-asterisco")
+  [setup-a-asterisco]
   set direccion 90
 
   set _UP 0 ; Para dirigir el heading de la tortuga hacia el norte
   set _DOWN 180 ; Para dirigir el heading de la tortuga hacia el sur
   set _RIGHT 90 ; Para dirigir el heading de la tortuga hacia el este
   set _LEFT 270 ; Para dirigir el heading de la tortuga hacia el oeste
-
   set-plot-pen-color brown
   reset-ticks
 end
+;"simple"
+;"mano-izquierda"
+;"a-asterisco"
 to go
-  move-vacuum-simple-heuristic
+  if(tipo-ejecucion = "simple")
+  [move-vacuum-simple]
+  if(tipo-ejecucion = "mano-izquierda")
+  [move-vacuum-left-hand]
+  if(tipo-ejecucion = "a-asterisco")
+  [move-vacuum-a-asterisco]
   tick
+end
+
+to mantener-mapa
+
 end
 
 to setup-dust
@@ -30,32 +44,41 @@ to setup-dust
 end
 
 to setup-vacuum
+  ;create-turtles 1
+  ;ask turtles [set color gray]
+  ;set-default-shape turtles "circle"
+  ;ask turtles [setxy (min-pxcor + 1) (max-pycor - 1)]
+  ;ask turtles [set heading 90]
+
   create-turtles 1
-  ask turtles [set color gray]
-  set-default-shape turtles "circle"
-  ask turtles [setxy (min-pxcor + 1) (max-pycor - 1)]
-  ask turtles [set heading 90]
+  ask turtles [set color red ]
+  set-default-shape turtles "target"
+  ask turtles [setxy (min-pxcor + 1) (max-pycor - 1)] ; se coloca en la esquina superior izquierda del mapa
+  ask turtles [set Start patch-here]                  ; el patch de inicio es en el que se encuentra la aspiradora inicialmente
 end
 
 to setup-obstacles
-   ask n-of obstacles patches [set pcolor 32]
-  ;HAY QUE PONER UNA RESTRICCION DE QUE NO SE PUEDE PONER UN OBSTACULO EN EL PUNTO INICIAL
+  ask n-of 10 patches
+  [
+    set pcolor brown
+    ask patches in-radius random 5 [set pcolor 32]
+  ]
   repeat obstacles [ask one-of patches [ set pcolor 32 ]]
-  ;]
-  ask patches with [
+
+  ask patches with [     ; creación de paredes en los bordes del mapa
     pxcor = min-pxcor or
     pxcor = max-pxcor or
     pycor = min-pycor or
     pycor = max-pycor
   ]
-  [ set pcolor 32 ]
+  [ set pcolor 32 ]      ; color de los obstáculos
 
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-239
+410
 10
-676
+847
 448
 -1
 -1
@@ -114,10 +137,10 @@ NIL
 0
 
 MONITOR
-25
-72
-120
-117
+295
+396
+390
+441
 brown patches
 count patches with [pcolor = brown]
 17
@@ -125,10 +148,10 @@ count patches with [pcolor = brown]
 11
 
 PLOT
-23
-193
-224
-343
+28
+296
+229
+446
 Totals
 time
 totals
@@ -143,10 +166,10 @@ PENS
 "dust" 1.0 0 -7500403 true "" "plot count patches with [pcolor = brown]"
 
 SLIDER
-24
-137
-197
-170
+32
+160
+205
+193
 obstacles
 obstacles
 0
@@ -156,6 +179,33 @@ obstacles
 1
 NIL
 HORIZONTAL
+
+CHOOSER
+30
+219
+398
+264
+tipo-ejecucion
+tipo-ejecucion
+"simple" "mano-izquierda" "a-asterisco"
+2
+
+BUTTON
+29
+73
+187
+106
+Mantener mapa
+mantener-mapa
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
 
 @#$#@#$#@
 ## WHAT IS IT?

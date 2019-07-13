@@ -1,0 +1,209 @@
+globals
+[
+  validPatches ; patches que representan las posiciones válidas del mapa (sin obstáculos)
+  Start        ; patch de la posición inicial de la aspiradora
+  finalCost    ; costo final del camino que calcula A*
+  currentRow   ; fila actual en que se encuentra la aspiradora
+  Destination  ; posición a la que se va a mover la aspiradora en cada tick
+]
+
+patches-own  ; variables de patches utilizadas en A*
+[
+  father     ; patch "padre" o anterior al patch actual
+  pathCost   ; costo del camino hasta el patch actual
+  visited?   ; variable booleana. True si se ha pasado por este patch, false si no
+  active?    ; patch que ha sido visitado, pero cuyos hijos no se han explorado
+]
+
+
+to setup-a-asterisco
+  ;clear-all
+
+  ask patches ; valores iniciales para los patches utilizados en A*
+  [
+    set father     nobody
+    set pathCost  0
+    set visited?   false
+    set active?    false
+    set currentRow 1
+  ]
+
+  ;ask patches [set pcolor brown]               ; se "ensucian" los patches que representan el piso
+  ;setup-obstacles                              ; colocación de obstáculos
+  set validPatches patches with [pcolor != 32] ; los patches válidos para moverse (no obstáculos)
+  ;setup-vacuum
+end
+
+; inicia el destino en cada movimiento de la aspiradora,
+; hace el llamado a la función A* y mueve la aspiradora
+to move-vacuum-a-asterisco
+  ; guarda en la variable Destination la posición del
+  ; patch a la que va a moverse
+  setup-destination
+
+  ; llamado a la función A* para calcular el camino
+  ; más corto desde Start hasta Destination pasando
+  ; por patches que no sean obstáculo
+  ; path es la lista de patches a recorrer
+  let path  A* Start Destination validPatches
+
+  ; si se encontró un camino válido
+  if path != false [
+    ask turtle 0 [clean] ; la aspiradora limpia su posición actual
+    ; por cada pathc "p" a recorrer en path,
+    ; la aspiradora se mueve hacia él y lo aspira
+    foreach path [ p ->
+      ask turtle 0 [
+        move-to p
+        clean
+      ]
+    ]
+    ; el patch de inicio, donde se encuentra la aspiradora se actualiza,
+    ; siendo la posición de destino que acaba de alcanzar
+    set Start Destination
+  ]
+end
+
+
+; decide cuál es patch más cercano al que se tiene que
+; mover en cada tick. Visita todos los de la fila actual (currentRow)
+; y repite el proceso en la siguiente fila
+to setup-destination
+  ask turtle 0[
+    if (currentRow < max-pxcor) [ ; si no se ha sobrepasado la última fila
+      ; si en la fila actual hay algún patch sucio
+      ifelse any? patches with [pxcor = currentRow and pcolor = brown][
+        ; el próximo destino es el patch sucio más cercano a la aspiradora en la fila actual,
+        ; en el radio establecido y se guarda en la variable Destination, para
+        ; ser utilizado en la función go
+        set Destination min-one-of (patches in-radius 50 with [pxcor = currentRow and pcolor = brown]) [distance myself]
+      ]
+      ; si no hay patches sucios en la fila actual el contador pasa a la siguiente fila
+      [set currentRow currentRow + 1]
+    ]
+  ]
+end
+
+
+; calcula y retorna el costo de un camino desde la posición actual de
+; la aspiradora hasta el destino en #Destination
+to-report travelCost [#Destination]
+  report pathCost + distanceTo #Destination
+end
+
+
+; retorna la distancia que hay desde el patch actual hasta #Goal
+to-report distanceTo [#Goal]
+  report distance #Goal
+end
+
+
+; función A*. #Start es el punto inicial en que se encuentra la aspiradora
+; #Goal es el patch de destino al que se quiere llegar
+; valid-Patches es la lista de patches por las que se puede mover.
+; Si se encuentra un camino válido se retorna una lista de patches que
+; conforman el camino de #Start hacia #Goal. Si no, retorna false
+to-report A* [#Start #Goal valid-Pactches]
+  ; se reinician las variables de cada patch
+  ask valid-Pactches with [visited?]
+  [
+    set father nobody
+    set pathCost 0
+    set visited? false
+    set active? false
+  ]
+  ; la posición inicial #Start se marca como visitada
+  ; y activa (para explorar sus hijos) y su padre es ella misma
+  ask #Start
+  [
+    set father self
+    set visited? true
+    set active? true
+  ]
+  ; la variable local exists? indica si existen patches que conecten a #Start
+  ; con #Goal
+  let exists? true
+  ; mientras no se haya alcanzado #Goal y exista un camino
+  while [not [visited?] of #Goal and exists?]
+  [
+    ; se crea la variable local options que contiene los patches
+    ; por los que se pueda mover y que tengan hijos no visitados
+    let options valid-Pactches with [active?]
+
+    ifelse any? options ; si existe algún patch en options
+    [
+      ; se toma de options el valor que tenga el costo mínimo
+      ; desde la posición actual hasta #Goal
+      ask min-one-of options [travelCost #Goal]
+      [
+        ; se guarda en la variable local pathCost-father el costo del camino del
+        ; patch padre hasta el patch actual para calcular el costo de sus patches hijos
+        let pathCost-father pathCost
+        ; el patch padre se pone como no activo para empezar a calcular a sus hijos (sus vecinos)
+        set active? false
+        ; valid-neighbors son los vecinos del patch padre que sean válidos (no obstáculos)
+        let valid-neighbors neighbors with [member? self valid-Pactches]
+        ask valid-neighbors
+        [
+          ; p representa un patch que nunca ha sido visitado. Se compara el costo
+          ; del camino entre él y su destino con un valor infinito (un millón),
+          ; para que p siempre sea de menor costo y por lo tanto, un mejor camino
+          let p ifelse-value visited? [ travelCost #Goal] [1000000]
+          ; si el costo de p es más alto que el que se calcula a continuación,
+          ; se sustituye la información en el patch por la del nuevo calculado
+          if p > (pathCost-father + distance myself + distanceTo #Goal)
+          [
+            ; The current patch becomes the father of its neighbor in the new path
+            ; el patch actual se convierte en el padre de sus vecinos para el cálculo del nuevo camino
+            set father myself
+            set visited? true ; se declara como visitado
+            set active? true ; está activo, pues hay que evaluar sus patches hijos
+            ; se guarda en el costo de su camino el costo de su padre, más la distancia entre ambos
+            set pathCost pathCost-father + distance father
+            ;set finalCost precision pathCost 3
+            set finalCost pathCost ; se asigna como valor de costo final del camino
+          ]
+        ]
+      ]
+    ]
+    ; else. Si no existen patches en options, significa que no existe un camino entre
+    ; #Start y #Goal. Entonces, exists? tiene valor false
+    [
+      set exists? false
+    ]
+  ]
+  ; Si fue posible encontrar un camino
+  ifelse exists?
+  [
+    ; se extrae la lista de patches en el camino, recorriendo desde #Goal
+    ; hasta #Start, usando el patch padre de cada patch
+    let currentPatch #Goal
+    ;set finalCost (precision [pathCost] of #Goal 3)
+    ; el costo final es el costo del camino desde #Goal
+    set finalCost [pathCost] of #Goal
+    ; recorrido de la lista de patches que representa el camino
+    let path (list currentPatch)
+    While [currentPatch != #Start] ; mientras no se llegue a #Start
+    [
+      ; el patch actual cambia al padre del patch anterior
+      set currentPatch [father] of currentPatch
+      ; se agrega al inicio de la lista path el path actual
+      set path fput currentPatch path
+    ]
+    ; por último, se retorna el camino
+    report path
+  ]
+  [
+    ; si no se encontró un camino, retorna false
+    report false
+  ]
+end
+
+
+; aspirado del patch en que se encuentra la aspiradora
+to clean
+  ask turtle 0 [
+    if pcolor = brown [ set pcolor white]
+    pen-down ; dibujado del rastro del camino de la aspiradora
+  ]
+end
