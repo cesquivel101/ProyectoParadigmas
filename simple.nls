@@ -1,0 +1,169 @@
+globals[ _ISDUSTY _ISCLEAN _ROW _COLUMN _DIRECTION _REPEATPATCHCOUNTER _FOUNDDIRECTION]
+
+to setup-simple
+  set _ROW (min-pycor + 1) ; establecemos el valor inicial de fila con la coordenada y mas pequeña + 1 (dentro del recuadro)
+  set _COLUMN (min-pxcor + 1) ; establecemos el valor inicial de columna con la coordenada x mas pequeña + 1 (dentro del recuadro)
+  ask turtles[set heading _RIGHT];_UP] ; Se establece la direccion de la tortuga hacia arriba
+  ;set _DIRECTION _UP
+  set _REPEATPATCHCOUNTER 0 ; Contador para saber si la aspiradora se quedo pegada. Si el malor es mayor a 1, provoca que se mueva al patch sucio mas cercano
+  set _FOUNDDIRECTION 0 ; Variable para tener un semaforo cuando para un tick ya se encontró la direccion hacia la cual se dirige la aspiradora
+  set _ISDUSTY false ; Booleano que nos indica si un patch esta sucio
+  ask turtles[set heading _RIGHT]
+end
+
+
+to move-vacuum-simple
+  find-nearest-dust
+  decide-direction
+end
+
+; Procedimiento que decide la direccion en la que se va a mover la tortuga y avanza un patch
+to decide-direction
+   set _FOUNDDIRECTION 0
+   ;show "Starting"
+   ;print-status _ROW _COLUMN _DIRECTION
+   set _REPEATPATCHCOUNTER (_REPEATPATCHCOUNTER + 1) ; marca que este patch ya fue visitado en este tick
+   if(is-inside-border _COLUMN _ROW)
+   [
+      vacuum-patch
+      go-up
+      go-right
+      go-down
+      go-left
+
+   ]
+
+end
+
+; Mover la tortuga un patch hacia el norte
+to go-up
+  ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
+  ; verifica que el vecino hacia el cual voy a moverme esta sucio
+  ; verifica que ningun otro movimiento fue realizado durante este tick
+  if(is-inside-border _COLUMN (_ROW - 1) and is-neighbor-dusty 0 1 and _FOUNDDIRECTION != 1)
+  [
+    set _REPEATPATCHCOUNTER 0
+    set _ROW (_ROW - 1)
+    ;set _DIRECTION _UP
+    ask turtles[set heading _UP fd 1  SHOW "MOVED UP"]
+    set _FOUNDDIRECTION 1
+    ;ask turtles[set heading _UP]
+    ;ask turtles[ fd 1]
+    show "UP"
+    ;print-status _ROW _COLUMN _DIRECTION
+  ]
+end
+
+; Mover la tortuga un patch hacia el este
+to go-right
+  ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
+  ; verifica que el vecino hacia el cual voy a moverme esta sucio
+  ; verifica que ningun otro movimiento fue realizado durante este tick
+  if(is-inside-border (_COLUMN + 1) _ROW and is-neighbor-dusty 1 0 and _FOUNDDIRECTION != 1)
+  [
+    set _REPEATPATCHCOUNTER 0
+    set _COLUMN (_COLUMN + 1)
+    ;set _DIRECTION _RIGHT
+    ask turtles[set heading _RIGHT fd 1 SHOW "MOVED RIGHT"]
+    set _FOUNDDIRECTION 1
+    ;ask turtles[set heading _RIGHT ]
+    ;ask turtles[fd 1]
+    show "RIGHT"
+    ;print-status row column dir
+  ]
+end
+
+; Mover la tortuga un patch hacia el sur
+to go-down
+  ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
+  ; verifica que el vecino hacia el cual voy a moverme esta sucio
+  ; verifica que ningun otro movimiento fue realizado durante este tick
+  if(is-inside-border _COLUMN (_ROW + 1) and is-neighbor-dusty 0 -1 and _FOUNDDIRECTION != 1)
+  [
+    set _REPEATPATCHCOUNTER 0
+    set _ROW (_ROW + 1)
+    ;set _DIRECTION _DOWN
+    ask turtles[set heading _DOWN fd 1 SHOW "MOVED DOWN"]
+    set _FOUNDDIRECTION 1
+    ;ask turtles[set heading _DOWN ]
+    ;ask turtles[fd 1]
+    show "DOWN"
+    ;print-status row column dir
+  ]
+end
+
+; Mover la tortuga un patch hacia el oeste
+to go-left
+  ; verifica que el movimiento que va a realizar la tortuga queda dentro de los confines del mapa
+  ; verifica que el vecino hacia el cual voy a moverme esta sucio
+  ; verifica que ningun otro movimiento fue realizado durante este tick
+  if(is-inside-border (_COLUMN - 1) _ROW and is-neighbor-dusty -1 0 and _FOUNDDIRECTION != 1)
+  ;if(is-inside-border _ROW (_COLUMN - 1) and is-neighbor-dusty -1 0)
+  [
+    set _REPEATPATCHCOUNTER 0
+    set _COLUMN (_COLUMN - 1)
+    ;set _DIRECTION _LEFT
+    ask turtles[set heading _LEFT fd 1 SHOW "MOVED LEFT"]
+    set _FOUNDDIRECTION 1
+    ;ask turtles[set heading _LEFT]
+    ;ask turtles[ fd 1]
+    show "LEFT"
+    ;print-status row column dir
+  ]
+end
+
+; Encuentra el patch sucio mas cercano a la posicion actual de la aspiradora
+to find-nearest-dust
+  ask turtles[
+    if _REPEATPATCHCOUNTER > 1 [ ;; No se si aca deberia ir un 1 o un 2
+      let target-patch min-one-of (patches in-radius 25 with [pcolor = brown]) [distance myself]
+      if target-patch != nobody  [
+        show "find nearest dust"
+        ;show "SHould i actually be here?: find-nearest-dust"
+        ;falta verificar aca que si hay un obstaculo entonces que se cambie la direccion de la tortuga: patch-ahead
+        face target-patch
+        fd 1
+        ; move-to target-patch
+      ]
+    ]
+  ]
+end
+
+to-report is-inside-border [x y]
+  ;ifelse (x > (min-pxcor + 1)) and (x < (max-pxcor - 1)) and (y > (min-pycor + 1)) and (y < (max-pycor - 1))
+  ifelse (x > (min-pxcor)) and (x < (max-pxcor)) and (y > (min-pycor)) and (y < (max-pycor))
+  [report true]
+  [report false]
+end
+
+; verifica si la posicion x y esta "sucia": pcolor cafe
+to-report is-neighbor-dusty [x y]
+  ask turtles[
+    ifelse([pcolor] of patch-at x y = brown)
+    [set _ISDUSTY true]
+    [set _ISDUSTY false]
+  ]
+  report _ISDUSTY
+end
+
+; verifica si la posicion x y esta "sucia": pcolor cafe
+to-report is-neighbor-clean [x y]
+  ask turtles[
+    ifelse([pcolor] of patch-at x y = white)
+    [set _ISCLEAN true]
+    [set _ISCLEAN false]
+  ]
+  report _ISCLEAN
+end
+
+
+; limpiar el patch sobre el que se encuentra la tortuga
+to vacuum-patch
+  ask turtles[
+     if([pcolor] of patch-at 0 0 = brown)
+     [
+       set _REPEATPATCHCOUNTER 0
+       set pcolor white
+     ]
+  ]
+end

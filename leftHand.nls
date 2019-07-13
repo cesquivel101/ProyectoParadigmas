@@ -1,0 +1,93 @@
+globals[_ISLEFTPATCHDUSTY _REPORTVARIABLE _NOROUTECOUNTER];
+
+to setup-left-hand
+  set _NOROUTECOUNTER 0
+  set _ISLEFTPATCHDUSTY false
+  ask turtles[set heading _RIGHT]
+end
+
+to move-vacuum-left-hand
+  vacuum-dust
+  if(not is-left-patch-obstacle-or-white)
+  [ask turtles[left 90] set _NOROUTECOUNTER 0]
+  ifelse(is-left-patch-obstacle-or-white)
+  [
+     ifelse(is-patch-ahead-dusty)
+     [ask turtles[fd 1] set _NOROUTECOUNTER 0]
+     [ask turtles[right 90] set _NOROUTECOUNTER (_NOROUTECOUNTER + 1)]
+  ]
+  [
+    ask turtles[right 90]
+    set _NOROUTECOUNTER (_NOROUTECOUNTER + 1)
+  ]
+  if(_NOROUTECOUNTER > 2)
+  [find-nearest-dust-left-hand set _NOROUTECOUNTER 0]
+end
+
+to-report is-left-patch-obstacle-or-white
+  
+  ask turtles[left 90]
+  ifelse(is-patch-ahead-obstacle or is-patch-ahead-white)
+   [set _REPORTVARIABLE true]
+   [set _REPORTVARIABLE false]
+  ask turtles[right 90]
+  
+  report _REPORTVARIABLE
+end
+
+to-report is-patch-ahead-obstacle
+  ask turtles[
+  ask patch-ahead 1[
+    ifelse(pcolor = 32)
+        [set _REPORTVARIABLE true]
+        [set _REPORTVARIABLE false]
+  ]]
+  report _REPORTVARIABLE
+end
+
+to-report is-patch-ahead-white
+  ask turtles[
+  ask patch-ahead 1[
+    ifelse(pcolor = white)
+        [set _REPORTVARIABLE true]
+        [set _REPORTVARIABLE false]
+  ]]
+  report _REPORTVARIABLE
+end
+
+to-report is-patch-ahead-dusty
+  ask turtles[
+  ask patch-ahead 1[
+    ifelse(pcolor = brown)
+        [set _REPORTVARIABLE true]
+        [set _REPORTVARIABLE false]
+  ]]
+  report _REPORTVARIABLE
+end
+
+to-report is-patch-ahead-possible
+  ask turtles[
+  ask patch-ahead 1[
+    ifelse(pcolor = brown or pcolor = white)
+        [set _REPORTVARIABLE true]
+        [set _REPORTVARIABLE false]
+  ]]
+  report _REPORTVARIABLE
+end
+
+; Encuentra el patch sucio mas cercano a la posicion actual de la aspiradora
+to find-nearest-dust-left-hand
+  ask turtles[
+    let target-patch min-one-of (patches in-radius 25 with [pcolor = brown]) [distance myself]
+    if target-patch != nobody  [
+      show "find nearest dust"
+      ;show "SHould i actually be here?: find-nearest-dust"
+      ;falta verificar aca que si hay un obstaculo entonces que se cambie la direccion de la tortuga: patch-ahead
+      face target-patch fd 1
+      ifelse(ycor < 0)
+      [set heading _LEFT]
+      [set heading _RIGHT]
+      ; move-to target-patch
+    ]
+  ]
+end

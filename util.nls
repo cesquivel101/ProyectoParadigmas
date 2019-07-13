@@ -1,0 +1,18 @@
+
+
+to vacuum-dust
+  ask turtles [
+    if pcolor = brown [ set pcolor white]
+    pen-down
+  ]
+end
+
+to print-status [row column dir]
+   show "column:"
+   show column
+   show "row:"
+   show row
+   show "DIRECTION"
+   show dir
+
+end
