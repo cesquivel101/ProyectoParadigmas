@@ -1,82 +1,82 @@
-;VERSION FINAL
-globals[ _FOUNDNEARESTDUST _MOVEDBECAUSERIGHT _ISLEFTPATCHDUSTY _ISAHEADDUSTY _WHITEPATCHCOUNTER _RIGHTTURNCOUNTER _ISINSIDEBORDERRELATIVE _DIR _FOUNDDIR _NEXTDIR _NEXTDIRCOUNT _TURNVACUUM _CURRENTX _CURRENTY]; obstaculo]
+globals[ _FOUNDNEARESTDUST _ISLEFTPATCHDUSTY _REPORTVARIABLE _NOROUTECOUNTER];
 
-to move-vacuum-simple-heuristic
-  move-forward
+to setup-left-hand
+   set _NOROUTECOUNTER 0
+  set _FOUNDNEARESTDUST false
+  set _ISLEFTPATCHDUSTY false
 end
 
-;; no lo esta haciendo bien porque cuando se usa find-nearest-dust no quedamos viendo para la direccion correcta.
-to move-forward
-  vacuum-patch
+to move-vacuum-simple-heuristic
+  vacuum-dust
   if(not is-left-patch-obstacle-or-white)
-  [ask turtles[left 90] set _WHITEPATCHCOUNTER 0]
+  [ask turtles[left 90] set _NOROUTECOUNTER 0]
   ifelse(is-left-patch-obstacle-or-white)
   [
      ifelse(is-patch-ahead-dusty)
-     [ask turtles[fd 1] set _WHITEPATCHCOUNTER 0]
-     [ask turtles[right 90] set _WHITEPATCHCOUNTER (_WHITEPATCHCOUNTER + 1)]
+     [ask turtles[fd 1] set _NOROUTECOUNTER 0]
+     [ask turtles[right 90] set _NOROUTECOUNTER (_NOROUTECOUNTER + 1)]
   ]
   [
     ask turtles[right 90]
-    set _WHITEPATCHCOUNTER (_WHITEPATCHCOUNTER + 1)
+    set _NOROUTECOUNTER (_NOROUTECOUNTER + 1)
   ]
-  if(_WHITEPATCHCOUNTER > 3)
-  [find-nearest-dust-heuristic set _WHITEPATCHCOUNTER 0]
+  if(_NOROUTECOUNTER > 2)
+  [find-nearest-dust-left-hand set _NOROUTECOUNTER 0]
 end
 
 to-report is-left-patch-obstacle-or-white
   
   ask turtles[left 90]
   ifelse(is-patch-ahead-obstacle or is-patch-ahead-white)
-   [set _ISLEFTPATCHDUSTY true]
-   [set _ISLEFTPATCHDUSTY false]
+   [set _REPORTVARIABLE true]
+   [set _REPORTVARIABLE false]
   ask turtles[right 90]
   
-  report _ISLEFTPATCHDUSTY
+  report _REPORTVARIABLE
 end
 
 to-report is-patch-ahead-obstacle
   ask turtles[
   ask patch-ahead 1[
     ifelse(pcolor = 32)
-        [set _ISAHEADDUSTY true]
-        [set _ISAHEADDUSTY false]
+        [set _REPORTVARIABLE true]
+        [set _REPORTVARIABLE false]
   ]]
-  report _ISAHEADDUSTY
+  report _REPORTVARIABLE
 end
 
 to-report is-patch-ahead-white
   ask turtles[
   ask patch-ahead 1[
     ifelse(pcolor = white)
-        [set _ISAHEADDUSTY true]
-        [set _ISAHEADDUSTY false]
+        [set _REPORTVARIABLE true]
+        [set _REPORTVARIABLE false]
   ]]
-  report _ISAHEADDUSTY
+  report _REPORTVARIABLE
 end
 
 to-report is-patch-ahead-dusty
   ask turtles[
   ask patch-ahead 1[
     ifelse(pcolor = brown)
-        [set _ISAHEADDUSTY true]
-        [set _ISAHEADDUSTY false]
+        [set _REPORTVARIABLE true]
+        [set _REPORTVARIABLE false]
   ]]
-  report _ISAHEADDUSTY
+  report _REPORTVARIABLE
 end
 
 to-report is-patch-ahead-possible
   ask turtles[
   ask patch-ahead 1[
     ifelse(pcolor = brown or pcolor = white)
-        [set _ISAHEADDUSTY true]
-        [set _ISAHEADDUSTY false]
+        [set _REPORTVARIABLE true]
+        [set _REPORTVARIABLE false]
   ]]
-  report _ISAHEADDUSTY
+  report _REPORTVARIABLE
 end
 
 ; Encuentra el patch sucio mas cercano a la posicion actual de la aspiradora
-to find-nearest-dust-heuristic
+to find-nearest-dust-left-hand
   ask turtles[
     let target-patch min-one-of (patches in-radius 25 with [pcolor = brown]) [distance myself]
     if target-patch != nobody  [
