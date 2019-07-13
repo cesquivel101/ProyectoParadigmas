@@ -1,60 +1,40 @@
-globals[ _FOUNDNEARESTDUST _ISAHEADDUSTY _WHITEPATCHCOUNTER _RIGHTTURNCOUNTER _ISINSIDEBORDERRELATIVE _DIR _FOUNDDIR _NEXTDIR _NEXTDIRCOUNT _TURNVACUUM _CURRENTX _CURRENTY]; obstaculo]
+;VERSION FINAL
+globals[ _FOUNDNEARESTDUST _MOVEDBECAUSERIGHT _ISLEFTPATCHDUSTY _ISAHEADDUSTY _WHITEPATCHCOUNTER _RIGHTTURNCOUNTER _ISINSIDEBORDERRELATIVE _DIR _FOUNDDIR _NEXTDIR _NEXTDIRCOUNT _TURNVACUUM _CURRENTX _CURRENTY]; obstaculo]
 
 to move-vacuum-simple-heuristic
   move-forward
 end
 
+;; no lo esta haciendo bien porque cuando se usa find-nearest-dust no quedamos viendo para la direccion correcta.
 to move-forward
   vacuum-patch
-
-  ;ifelse(is-patch-ahead-dusty and _RIGHTTURNCOUNTER = 0)
-   ;print word "_WHITEPATCHCOUNTER:" _WHITEPATCHCOUNTER
-   if(_WHITEPATCHCOUNTER > 1)
-  ;;probablemente deberia mover esto para trackear bien los ticks
-   [show "wpc > 1" find-nearest-dust-heuristic set _WHITEPATCHCOUNTER 0 set _RIGHTTURNCOUNTER 1 set _FOUNDDIR true set _FOUNDNEARESTDUST true]
-   ifelse(is-patch-ahead-possible and _RIGHTTURNCOUNTER = 0)
-      [
-        ;;show "moved ahead"
-        set _RIGHTTURNCOUNTER (_RIGHTTURNCOUNTER + 1)
-        ask turtles[set _FOUNDDIR 0 fd 1]
-      ]
-      [
-        try-left 
-        try-right
-        if(is-patch-ahead-white or is-patch-ahead-obstacle)[
-          
-           set _WHITEPATCHCOUNTER (_WHITEPATCHCOUNTER + 1)
-        ]
-      ]
+  if(not is-left-patch-obstacle-or-white)
+  [ask turtles[left 90] set _WHITEPATCHCOUNTER 0]
+  ifelse(is-left-patch-obstacle-or-white)
+  [
+     ifelse(is-patch-ahead-dusty)
+     [ask turtles[fd 1] set _WHITEPATCHCOUNTER 0]
+     [ask turtles[right 90] set _WHITEPATCHCOUNTER (_WHITEPATCHCOUNTER + 1)]
+  ]
+  [
+    ask turtles[right 90]
+    set _WHITEPATCHCOUNTER (_WHITEPATCHCOUNTER + 1)
+  ]
+  if(_WHITEPATCHCOUNTER > 3)
+  [find-nearest-dust-heuristic set _WHITEPATCHCOUNTER 0]
 end
 
-; De alguna manera tengo que decidir el heading dependiendo de las coordenadas de la tortuga, despues de que esta hace un find-nearest-dust. Pareciera que el heading queda "mal" despues de moverme de manera "libre"
-; hacia el dust mas cercano y por eso empieza a brincar 
-
-
-to try-left
-   ask turtles[left 90]
-   set _FOUNDDIR true
-   ;;;show "Tried left"
-   set _RIGHTTURNCOUNTER 0
-   ;if(not is-patch-ahead-dusty)
-   ifelse(not is-patch-ahead-dusty)[
-     set _FOUNDDIR false
-     ask turtles[right 90]
-     ;;show "Returned to right"
-     set _RIGHTTURNCOUNTER (_RIGHTTURNCOUNTER + 1)
-   ]
-   [set _WHITEPATCHCOUNTER 0 set _FOUNDNEARESTDUST false]
+to-report is-left-patch-obstacle-or-white
+  
+  ask turtles[left 90]
+  ifelse(is-patch-ahead-obstacle or is-patch-ahead-white)
+   [set _ISLEFTPATCHDUSTY true]
+   [set _ISLEFTPATCHDUSTY false]
+  ask turtles[right 90]
+  
+  report _ISLEFTPATCHDUSTY
 end
 
-to try-right
-   ;;show "Tried right"
-   ifelse(not _FOUNDDIR and not _FOUNDNEARESTDUST)[
-      ask turtles[right 90]
-   ]
-  [set _FOUNDNEARESTDUST false]
-end
-;32
 to-report is-patch-ahead-obstacle
   ask turtles[
   ask patch-ahead 1[
@@ -98,15 +78,16 @@ end
 ; Encuentra el patch sucio mas cercano a la posicion actual de la aspiradora
 to find-nearest-dust-heuristic
   ask turtles[
-    if _WHITEPATCHCOUNTER > 1 [ ;; No se si aca deberia ir un 1 o un 2
-      let target-patch min-one-of (patches in-radius 25 with [pcolor = brown]) [distance myself]
-      if target-patch != nobody  [
-        show "find nearest dust"
-        ;show "SHould i actually be here?: find-nearest-dust"
-        ;falta verificar aca que si hay un obstaculo entonces que se cambie la direccion de la tortuga: patch-ahead
-        face target-patch fd 1
-        ; move-to target-patch
-      ]
+    let target-patch min-one-of (patches in-radius 25 with [pcolor = brown]) [distance myself]
+    if target-patch != nobody  [
+      show "find nearest dust"
+      ;show "SHould i actually be here?: find-nearest-dust"
+      ;falta verificar aca que si hay un obstaculo entonces que se cambie la direccion de la tortuga: patch-ahead
+      face target-patch fd 1
+      ifelse(ycor < 0)
+      [set heading _LEFT]
+      [set heading _RIGHT]
+      ; move-to target-patch
     ]
   ]
 end

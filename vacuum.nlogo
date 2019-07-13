@@ -165,9 +165,9 @@ ticks
 30.0
 
 BUTTON
-28
+27
 21
-92
+91
 55
 NIL
 setup
@@ -236,7 +236,7 @@ obstacles
 obstacles
 0
 100
-51.0
+59.0
 1
 1
 NIL

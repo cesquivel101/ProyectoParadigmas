@@ -20,7 +20,8 @@ to find-nearest-dust
         show "find nearest dust"
         ;show "SHould i actually be here?: find-nearest-dust"
         ;falta verificar aca que si hay un obstaculo entonces que se cambie la direccion de la tortuga: patch-ahead
-        face target-patch fd 1
+        face target-patch
+        fd 1
         ; move-to target-patch
       ]
     ]
@@ -92,6 +93,8 @@ to setup-globals
   set _RIGHTTURNCOUNTER 0
   set _WHITEPATCHCOUNTER 0
   set _FOUNDNEARESTDUST false
+  set _ISLEFTPATCHDUSTY false
+  set _MOVEDBECAUSERIGHT false
   set-plot-pen-color brown
   
 end
