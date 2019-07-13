@@ -92,10 +92,10 @@ GRAPHICS-WINDOW
 0
 0
 1
--16
-16
--16
-16
+0
+32
+-32
+0
 1
 1
 1
@@ -210,19 +210,33 @@ NIL
 @#$#@#$#@
 ## WHAT IS IT?
 
-(a general understanding of what the model is trying to show or explain)
+Una simulación del funcionamiento de un robot aspiradora, que se mueve de manera ordenada en un área que representa una habitación y aspira la suciedad de cada bloque por el que se mueve, hasta recorrerla por completo.
+
+Incluye tres modalidades diferentes: la primera realiza el recorrido sin ningún tipo de inteligencia artificial y las otras dos implementan heurísticas que buscan realizar recorridos más eficientes.
 
 ## HOW IT WORKS
 
-(what rules the agents use to create the overall behavior of the model)
+A_Asterisco realiza un recorrido ordenado que busca limpiar cada fila del mapa por completo antes de avanzar a la siguiente y así sucesivamente hasta llegar a la última posición. Para ello se mueve al patch que está más cercano a su posición en la fila actual y calcula la ruta más corta para llegar hacia él. 
+
+Utiliza el algoritmo de búsqueda A asterisco (A*), que forma un árbol de búsqueda en el que el punto de inicio de una ruta, así como la raíz del árbol, es la posición inicial en el mapa donde se encuentra la aspiradora y busca las rutas desde cada uno de sus patches adyacentes (sus nodos hijos), de manera que no pasen por posiciones que ya hayan usado otras rutas para llegar al patch de destino. Después calcula el costo de cada ruta y escoge la que tenga el menor costo. 
 
 ## HOW TO USE IT
 
-(how to use the model, including a description of each of the items in the Interface tab)
+tipo-ejecucion permite escoger uno de los tres tipos de funcionamiento para el recorrido de la aspiradora: simple, mano-izquierda y a-asterisco.
+
+setup genera un mapa aleatorio, reinicia las variables a utilizar y ubica la aspiradora en la esquina superior izquierda del mapa. 
+
+Mantener mapa permite cambiar cualquiera de los tres algoritmos de recorrido.
+
+go comienza la simulación del recorrido con el algoritmo escogido.
+
+brown patches lleva un conteo de los patches que hay sucios durante el recorrido. Disminuye a medida que se van "aspirando".
+
+Totals grafica la disminución de patches sucios en el tiempo.
 
 ## THINGS TO NOTICE
 
-(suggested things for the user to notice while running the model)
+(suggested things for the user to notice while running the model
 
 ## THINGS TO TRY
 
