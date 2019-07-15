@@ -9,7 +9,7 @@ end
 to move-vacuum-left-hand
   vacuum-dust
   if(not is-left-patch-obstacle-or-white)
-  [ask turtles[left 90] set _NOROUTECOUNTER 0]
+  [ask turtles[left 90] ];set _NOROUTECOUNTER 0]
   ifelse(is-left-patch-obstacle-or-white)
   [
      ifelse(is-patch-ahead-dusty)
@@ -78,7 +78,7 @@ end
 ; Encuentra el patch sucio mas cercano a la posicion actual de la aspiradora
 to find-nearest-dust-left-hand
   ask turtles[
-    let target-patch min-one-of (patches in-radius 25 with [pcolor = brown]) [distance myself]
+    let target-patch min-one-of (patches in-radius 35 with [pcolor = brown]) [distance myself]
     if target-patch != nobody  [
       show "find nearest dust"
       ;show "SHould i actually be here?: find-nearest-dust"

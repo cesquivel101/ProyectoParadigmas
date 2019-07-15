@@ -1,4 +1,4 @@
-globals[direccion  _UP _DOWN _RIGHT _LEFT]; obstaculo]
+globals[direccion  _UP _DOWN _RIGHT _LEFT stopped?]; obstaculo]
 
 __includes["leftHand.nls" "simple.nls" "util.nls" "a_asterisco.nls"]
 
@@ -6,7 +6,9 @@ to setup
   clear-all
   setup-dust
   setup-vacuum
-  setup-obstacles
+  ifelse(mapa_fijo)
+  [setup-fixed-map]
+  [setup-obstacles]
   if(tipo-ejecucion = "simple")
   [setup-simple]
   if(tipo-ejecucion = "mano-izquierda")
@@ -20,6 +22,8 @@ to setup
   set _RIGHT 90 ; Para dirigir el heading de la tortuga hacia el este
   set _LEFT 270 ; Para dirigir el heading de la tortuga hacia el oeste
   set-plot-pen-color brown
+
+  set stopped? false
   reset-ticks
 end
 ;"simple"
@@ -33,6 +37,12 @@ to go
   if(tipo-ejecucion = "a-asterisco")
   [move-vacuum-a-asterisco]
   tick
+  ask turtles[
+    ifelse any? patches with [pcolor = brown]
+    [set stopped? false]
+    [set stopped? true]
+  ]
+  if stopped? = true [stop]
 end
 
 to mantener-mapa
@@ -64,6 +74,82 @@ to setup-obstacles
     ask patches in-radius random 5 [set pcolor 32]
   ]
   repeat obstacles [ask one-of patches [ set pcolor 32 ]]
+
+  ask patches with [     ; creación de paredes en los bordes del mapa
+    pxcor = min-pxcor or
+    pxcor = max-pxcor or
+    pycor = min-pycor or
+    pycor = max-pycor
+  ]
+  [ set pcolor 32 ]      ; color de los obstáculos
+
+end
+
+to draw-rectangle [x y width len]
+  ask patches with
+  [ (width + x) >= pxcor and pxcor >= x and y >= pycor and pycor >= (y - len) ]
+  [ set pcolor 32 ]
+end
+
+to setup-fixed-map
+
+  ; rectángulos
+  draw-rectangle 15 -1 10 4
+  draw-rectangle 27 -2 2 3
+  draw-rectangle 1 -5 3 6
+  ask patch 1 -13 [set pcolor 32]
+
+  ; mesa
+  ask patch 24 -14 [ask patches in-radius 4 [set pcolor 32]]
+  ask patch 26 -14 [ask patches in-radius 4 [set pcolor 32]]
+
+  ask patch 14 -12 [ask patches in-radius 2 [set pcolor 32]]
+
+  ask patch 12 -20 [ask patches in-radius 2 [set pcolor 32]]
+  ask patch 30 -26 [ask patches in-radius 2 [set pcolor 32]]
+
+  ; 4 puntos esquina inferior izquierda
+  ask patch 2 -31 [set pcolor 32]
+  ask patch 4 -31 [set pcolor 32]
+  ask patch 2 -29 [set pcolor 32]
+  ask patch 4 -29 [set pcolor 32]
+
+  ; equis
+  ask patch 22 -23 [set pcolor 32] ask patch 24 -23 [set pcolor 32]
+  ask patch 28 -23 [set pcolor 32] ask patch 26 -23 [set pcolor 32]
+  ask patch 23 -24 [set pcolor 32]
+  ask patch 27 -24 [set pcolor 32]
+  ask patch 24 -25 [set pcolor 32]
+  ask patch 26 -25 [set pcolor 32]
+  ask patch 25 -26 [set pcolor 32]
+  ask patch 26 -27 [set pcolor 32]
+  ask patch 24 -27 [set pcolor 32]
+  ask patch 27 -28 [set pcolor 32]
+  ask patch 23 -28 [set pcolor 32]
+  ask patch 28 -29 [set pcolor 32]
+  ask patch 22 -29 [set pcolor 32]
+
+  ; puntos individuales
+  ask patch 5 -29 [set pcolor 32]
+  ask patch 22 -5 [set pcolor 32]
+  ask patch 22 -29 [set pcolor 32]
+  ask patch 14 -16 [set pcolor 32]
+  ask patch 18 -29 [set pcolor 32]
+  ask patch 15 -20 [set pcolor 32]
+  ask patch 6 -14 [set pcolor 32]
+  ask patch 5 -1 [set pcolor 32]
+  ask patch 8 -4 [set pcolor 32]
+  ask patch 9 -7 [set pcolor 32]
+  ask patch 10 -12 [set pcolor 32]
+  ask patch 10 -15 [set pcolor 32]
+  ask patch 14 -25 [set pcolor 32]
+  ask patch 20 -23 [set pcolor 32]
+  ask patch 23 -21 [set pcolor 32]
+  ask patch 25 -20 [set pcolor 32]
+  ask patch 28 -21 [set pcolor 32]
+
+  draw-rectangle 10 -20 0 5
+  draw-rectangle 1 -15 3 6
 
   ask patches with [     ; creación de paredes en los bordes del mapa
     pxcor = min-pxcor or
@@ -188,7 +274,7 @@ CHOOSER
 tipo-ejecucion
 tipo-ejecucion
 "simple" "mano-izquierda" "a-asterisco"
-2
+1
 
 BUTTON
 29
@@ -206,6 +292,17 @@ NIL
 NIL
 NIL
 1
+
+SWITCH
+263
+37
+374
+70
+mapa_fijo
+mapa_fijo
+0
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
