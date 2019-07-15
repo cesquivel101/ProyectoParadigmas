@@ -56,8 +56,10 @@ to move-vacuum-a-asterisco
       ask turtle 0 [
         move-to p
         clean
+		set time time + 1 
       ]
     ]
+	set time time - 1 
     ; el patch de inicio, donde se encuentra la aspiradora se actualiza,
     ; siendo la posición de destino que acaba de alcanzar
     set Start Destination

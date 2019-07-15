@@ -1,4 +1,4 @@
-globals[direccion  _UP _DOWN _RIGHT _LEFT stopped?]; obstaculo]
+globals[direccion  _UP _DOWN _RIGHT _LEFT stopped? time]; obstaculo]
 
 __includes["leftHand.nls" "simple.nls" "util.nls" "a_asterisco.nls"]
 
@@ -24,6 +24,8 @@ to setup
   set-plot-pen-color brown
 
   set stopped? false
+  set time 0
+
   reset-ticks
 end
 ;"simple"
@@ -274,7 +276,7 @@ CHOOSER
 tipo-ejecucion
 tipo-ejecucion
 "simple" "mano-izquierda" "a-asterisco"
-1
+2
 
 BUTTON
 29
@@ -303,6 +305,17 @@ mapa_fijo
 0
 1
 -1000
+
+MONITOR
+294
+298
+351
+343
+time
+time
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
