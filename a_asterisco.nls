@@ -49,7 +49,7 @@ to move-vacuum-a-asterisco
 
   ; si se encontró un camino válido
   if path != false [
-    ask turtle 0 [clean] ; la aspiradora limpia su posición actual
+    ;ask turtle 0 [clean] ; la aspiradora limpia su posición actual
     ; por cada pathc "p" a recorrer en path,
     ; la aspiradora se mueve hacia él y lo aspira
     foreach path [ p ->
