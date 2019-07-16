@@ -1,11 +1,6 @@
 
 
-to vacuum-dust
-  ask turtles [
-    if pcolor = brown [ set pcolor white]
-    pen-down
-  ]
-end
+
 
 to print-status [row column dir]
    show "column:"

@@ -87,7 +87,16 @@ to find-nearest-dust-left-hand
       ifelse(ycor < 0)
       [set heading _LEFT]
       [set heading _RIGHT]
+      set time time + 1 
       ; move-to target-patch
     ]
+  ]
+end
+
+to vacuum-dust
+  ask turtles [
+    if pcolor = brown [ set pcolor white]
+    set time time + 1 
+    pen-down
   ]
 end

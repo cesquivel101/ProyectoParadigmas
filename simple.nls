@@ -123,6 +123,7 @@ to find-nearest-dust
         ;falta verificar aca que si hay un obstaculo entonces que se cambie la direccion de la tortuga: patch-ahead
         face target-patch
         fd 1
+        set time time + 1 
         ; move-to target-patch
       ]
     ]
@@ -163,6 +164,7 @@ to vacuum-patch
      if([pcolor] of patch-at 0 0 = brown)
      [
        set _REPEATPATCHCOUNTER 0
+      set time time + 1 
        set pcolor white
      ]
   ]
