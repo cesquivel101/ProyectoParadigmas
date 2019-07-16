@@ -286,7 +286,7 @@ SWITCH
 134
 mapa_fijo
 mapa_fijo
-1
+0
 1
 -1000
 

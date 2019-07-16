@@ -80,7 +80,7 @@ to find-nearest-dust-left-hand
   ask turtles[
     let target-patch min-one-of (patches in-radius 35 with [pcolor = brown]) [distance myself]
     if target-patch != nobody  [
-      show "find nearest dust"
+      ;show "find nearest dust"
       ;show "SHould i actually be here?: find-nearest-dust"
       ;falta verificar aca que si hay un obstaculo entonces que se cambie la direccion de la tortuga: patch-ahead
       face target-patch fd 1
