@@ -70,11 +70,11 @@ to setup-vacuum
 end
 
 to setup-obstacles
-  ask n-of 10 patches
-  [
-    set pcolor brown
-    ask patches in-radius random 5 [set pcolor 32]
-  ]
+;  ask n-of 10 patches
+;  [
+;    set pcolor brown
+;    ask patches in-radius random 5 [set pcolor 32]
+;  ]
   repeat obstacles [ask one-of patches [ set pcolor 32 ]]
 
   ask patches with [     ; creación de paredes en los bordes del mapa
@@ -85,6 +85,7 @@ to setup-obstacles
   ]
   [ set pcolor 32 ]      ; color de los obstáculos
 
+  ask patch 1 -1 [set pcolor brown]
 end
 
 to draw-rectangle [x y width len]
@@ -164,10 +165,10 @@ to setup-fixed-map
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-410
-10
-847
-448
+256
+14
+693
+452
 -1
 -1
 13.0
@@ -191,10 +192,10 @@ ticks
 30.0
 
 BUTTON
-27
-21
-91
-55
+44
+32
+108
+66
 NIL
 setup
 NIL
@@ -208,10 +209,10 @@ NIL
 1
 
 BUTTON
-120
-21
-184
-55
+132
+32
+196
+66
 NIL
 go
 T
@@ -225,10 +226,10 @@ NIL
 0
 
 MONITOR
-295
-396
-390
-441
+481
+470
+576
+515
 brown patches
 count patches with [pcolor = brown]
 17
@@ -262,7 +263,7 @@ obstacles
 obstacles
 0
 100
-39.0
+82.0
 1
 1
 NIL
@@ -271,46 +272,29 @@ HORIZONTAL
 CHOOSER
 30
 219
-398
+206
 264
 tipo-ejecucion
 tipo-ejecucion
 "simple" "mano-izquierda" "a-asterisco"
-2
-
-BUTTON
-29
-73
-187
-106
-Mantener mapa
-mantener-mapa
-NIL
-1
-T
-OBSERVER
-NIL
-NIL
-NIL
-NIL
-1
+0
 
 SWITCH
-263
-37
-374
-70
+34
+101
+207
+134
 mapa_fijo
 mapa_fijo
-0
+1
 1
 -1000
 
 MONITOR
-294
-298
-351
-343
+356
+470
+413
+515
 time
 time
 17

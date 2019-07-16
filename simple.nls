@@ -30,7 +30,7 @@ to decide-direction
       go-right
       go-down
       go-left
-
+      set time time + 1 
    ]
 
 end
@@ -50,6 +50,7 @@ to go-up
     ;ask turtles[set heading _UP]
     ;ask turtles[ fd 1]
     show "UP"
+    ;set time time + 1 
     ;print-status _ROW _COLUMN _DIRECTION
   ]
 end
@@ -69,6 +70,7 @@ to go-right
     ;ask turtles[set heading _RIGHT ]
     ;ask turtles[fd 1]
     show "RIGHT"
+    ;set time time + 1 
     ;print-status row column dir
   ]
 end
@@ -88,6 +90,7 @@ to go-down
     ;ask turtles[set heading _DOWN ]
     ;ask turtles[fd 1]
     show "DOWN"
+    ;set time time + 1 
     ;print-status row column dir
   ]
 end
@@ -108,6 +111,7 @@ to go-left
     ;ask turtles[set heading _LEFT]
     ;ask turtles[ fd 1]
     show "LEFT"
+    ;set time time + 1 
     ;print-status row column dir
   ]
 end
@@ -116,7 +120,7 @@ end
 to find-nearest-dust
   ask turtles[
     if _REPEATPATCHCOUNTER > 1 [ ;; No se si aca deberia ir un 1 o un 2
-      let target-patch min-one-of (patches in-radius 25 with [pcolor = brown]) [distance myself]
+      let target-patch min-one-of (patches in-radius 36 with [pcolor = brown]) [distance myself]
       if target-patch != nobody  [
         show "find nearest dust"
         ;show "SHould i actually be here?: find-nearest-dust"
@@ -164,8 +168,9 @@ to vacuum-patch
      if([pcolor] of patch-at 0 0 = brown)
      [
        set _REPEATPATCHCOUNTER 0
-      set time time + 1 
+      ;set time time + 1 set time time + 1 
        set pcolor white
+       pendown
      ]
   ]
 end
