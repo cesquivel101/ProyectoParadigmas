@@ -17,7 +17,6 @@ patches-own  ; variables de patches utilizadas en A*
 
 
 to setup-a-asterisco
-  ;clear-all
 
   ask patches ; valores iniciales para los patches utilizados en A*
   [
@@ -28,10 +27,7 @@ to setup-a-asterisco
     set currentRow 1
   ]
 
-  ;ask patches [set pcolor brown]               ; se "ensucian" los patches que representan el piso
-  ;setup-obstacles                              ; colocación de obstáculos
   set validPatches patches with [pcolor != 32] ; los patches válidos para moverse (no obstáculos)
-  ;setup-vacuum
 end
 
 ; inicia el destino en cada movimiento de la aspiradora,
@@ -155,7 +151,6 @@ to-report A* [#Start #Goal valid-Pactches]
           ; se sustituye la información en el patch por la del nuevo calculado
           if p > (pathCost-father + distance myself + distanceTo #Goal)
           [
-            ; The current patch becomes the father of its neighbor in the new path
             ; el patch actual se convierte en el padre de sus vecinos para el cálculo del nuevo camino
             set father myself
             set visited? true ; se declara como visitado
