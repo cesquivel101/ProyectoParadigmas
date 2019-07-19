@@ -1,0 +1,65 @@
+globals [ stoppedSingleRun?]
+
+to setup-repeat
+  clear-drawing 
+  clear-turtles
+  reset-ticks 
+  clear-patches
+  setup-dust
+  setup-vacuum
+  ifelse(mapa_fijo)
+  [setup-fixed-map]
+  [setup-obstacles]
+  if(tipo-ejecucion = "simple")
+  [setup-simple]
+  if(tipo-ejecucion = "mano-izquierda")
+  [setup-left-hand]
+  if(tipo-ejecucion = "a-asterisco")
+  [setup-a-asterisco]
+  set direccion 90
+  
+  ;set contador 0
+  ;set numRepeticion 0
+  set time 0
+  set stoppedSingleRun? false
+end
+
+to go-repeat
+  ;show numeroDeRepeticiones
+  if(tipo-ejecucion = "simple")
+  [move-vacuum-simple]
+  if(tipo-ejecucion = "mano-izquierda")
+  [move-vacuum-left-hand]
+  if(tipo-ejecucion = "a-asterisco")
+  [move-vacuum-a-asterisco]
+  tick
+  ask turtles[
+    ifelse any? patches with [pcolor = brown]
+    [];print word "aca deberia entrar todas las veces contador:" contador]
+    [
+      set promedioInterno (promedioInterno + time)
+      set contador (contador + 1)
+      ;print word "Contador antes de setup: " contador
+      set numRepeticion contador
+      ;print word "Contador antes de setup: " contador
+      ;show "mae"
+      set stoppedSingleRun? true
+      print word "Contador dentro de una corrida:" contador
+    ]
+  ]
+
+  if (contador = numeroDeRepeticiones) [
+    print word "Valor del contador en la condicion de parada" contador
+    set promedio (promedioInterno / numeroDeRepeticiones) 
+    clear-drawing
+    stop
+    ;clear-all
+   ; setup-repeat
+    
+    ;show "legal"
+  ]
+  if(stoppedSingleRun?)
+  [ setup-repeat  print word "Contador dentro de una corrida pero en el setup:" contador]
+  
+end
+

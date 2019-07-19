@@ -120,7 +120,7 @@ end
 to find-nearest-dust
   ask turtles[
     if _REPEATPATCHCOUNTER > 1 [ ;; No se si aca deberia ir un 1 o un 2
-      let target-patch min-one-of (patches in-radius 36 with [pcolor = brown]) [distance myself]
+      let target-patch min-one-of (patches in-radius 40 with [pcolor = brown]) [distance myself]
       if target-patch != nobody  [
         ;show "find nearest dust"
         ;show "SHould i actually be here?: find-nearest-dust"

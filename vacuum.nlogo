@@ -1,6 +1,6 @@
-globals[direccion  _UP _DOWN _RIGHT _LEFT stopped? time]; obstaculo]
+ globals[direccion  _UP _DOWN _RIGHT _LEFT stopped? time promedio numRepeticion contador promedioInterno]; obstaculo]
 
-__includes["leftHand.nls" "simple.nls" "util.nls" "a_asterisco.nls"]
+__includes["leftHand.nls" "simple.nls" "util.nls" "a_asterisco.nls" "corridas_estadistica.nls"]
 
 to setup
   clear-all
@@ -26,12 +26,19 @@ to setup
   set stopped? false
   set time 0
 
+  set promedioInterno 0
+  set numRepeticion 0
+  set contador 0
+  set stoppedSingleRun? false
   reset-ticks
 end
+
+
 ;"simple"
 ;"mano-izquierda"
 ;"a-asterisco"
 to go
+  show "estoy loco"
   if(tipo-ejecucion = "simple")
   [move-vacuum-simple]
   if(tipo-ejecucion = "mano-izquierda")
@@ -54,6 +61,9 @@ end
 to setup-dust
   ask patches [set pcolor brown]
 end
+
+
+
 
 to setup-vacuum
   ;create-turtles 1
@@ -165,10 +175,10 @@ to setup-fixed-map
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-256
-14
-693
-452
+477
+10
+914
+448
 -1
 -1
 13.0
@@ -226,10 +236,10 @@ NIL
 0
 
 MONITOR
-481
-470
-576
-515
+807
+467
+902
+512
 brown patches
 count patches with [pcolor = brown]
 17
@@ -237,10 +247,10 @@ count patches with [pcolor = brown]
 11
 
 PLOT
-28
-296
-229
-446
+227
+177
+428
+327
 Totals
 time
 totals
@@ -286,17 +296,67 @@ SWITCH
 134
 mapa_fijo
 mapa_fijo
-0
+1
 1
 -1000
 
 MONITOR
-356
-470
-413
-515
+706
+466
+793
+511
 time
 time
+17
+1
+11
+
+BUTTON
+265
+32
+350
+66
+go repeat
+go-repeat
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+MONITOR
+474
+464
+559
+509
+Promedio
+promedio
+4
+1
+11
+
+INPUTBOX
+234
+101
+389
+161
+numeroDeRepeticiones
+100.0
+1
+0
+Number
+
+MONITOR
+589
+465
+684
+510
+# Repeticion
+numRepeticion
 17
 1
 11

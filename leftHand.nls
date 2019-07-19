@@ -78,7 +78,7 @@ end
 ; Encuentra el patch sucio mas cercano a la posicion actual de la aspiradora
 to find-nearest-dust-left-hand
   ask turtles[
-    let target-patch min-one-of (patches in-radius 35 with [pcolor = brown]) [distance myself]
+    let target-patch min-one-of (patches in-radius 40 with [pcolor = brown]) [distance myself]
     if target-patch != nobody  [
       ;show "find nearest dust"
       ;show "SHould i actually be here?: find-nearest-dust"
