@@ -181,7 +181,7 @@ GRAPHICS-WINDOW
 448
 -1
 -1
-13.0
+18.6
 1
 10
 1
@@ -202,9 +202,9 @@ ticks
 30.0
 
 BUTTON
-44
+34
 32
-108
+98
 66
 NIL
 setup
@@ -273,7 +273,7 @@ obstacles
 obstacles
 0
 100
-82.0
+100.0
 1
 1
 NIL
@@ -287,7 +287,7 @@ CHOOSER
 tipo-ejecucion
 tipo-ejecucion
 "simple" "mano-izquierda" "a-asterisco"
-0
+2
 
 SWITCH
 34
