@@ -6,6 +6,13 @@ globals[
   _NOROUTECOUNTER ; Contador de veces que aspiradora no pudo moverse. Se usa para determinar cuando mover la aspiradora libremente
 ];
 
+; Establecer valores iniciales para la corrida usando mano izquierda
+to setup-left-hand
+  set _NOROUTECOUNTER 0
+  set _ISLEFTPATCHDUSTY false
+  ask turtles[set heading _RIGHT]
+end
+
 ; Mover la aspiradora con el algoritmo de resolucion de mapas, mano izquierda
 to move-vacuum-left-hand
   vacuum-dust
