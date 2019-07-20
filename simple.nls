@@ -1,17 +1,23 @@
-globals[ _ISDUSTY _ISCLEAN _ROW _COLUMN _DIRECTION _REPEATPATCHCOUNTER _FOUNDDIRECTION]
+; Algoritmo de limpiado simple (aleatorio)
+
+globals[ 
+  _ISDUSTY ; Me indica si el patch en el que esta la aspiradora esta sucio
+  _ISCLEAN  ; Me indica si el patch en el que esta la aspiradora esta limpio
+  _ROW ; Fila actual de la aspiradora
+  _COLUMN ; columna actual de la aspiradora
+  _REPEATPATCHCOUNTER 
+  _FOUNDDIRECTION]
 
 to setup-simple
   set _ROW (min-pycor + 1) ; establecemos el valor inicial de fila con la coordenada y mas pequeña + 1 (dentro del recuadro)
   set _COLUMN (min-pxcor + 1) ; establecemos el valor inicial de columna con la coordenada x mas pequeña + 1 (dentro del recuadro)
-  ask turtles[set heading _RIGHT];_UP] ; Se establece la direccion de la tortuga hacia arriba
-  ;set _DIRECTION _UP
+  ask turtles[set heading _RIGHT]; Se establece la direccion de la aspiradora hacia arriba
   set _REPEATPATCHCOUNTER 0 ; Contador para saber si la aspiradora se quedo pegada. Si el malor es mayor a 1, provoca que se mueva al patch sucio mas cercano
   set _FOUNDDIRECTION 0 ; Variable para tener un semaforo cuando para un tick ya se encontró la direccion hacia la cual se dirige la aspiradora
   set _ISDUSTY false ; Booleano que nos indica si un patch esta sucio
-  ask turtles[set heading _RIGHT]
 end
 
-
+; mueve la aspiradora de manera "simple"
 to move-vacuum-simple
   find-nearest-dust
   decide-direction
@@ -20,8 +26,6 @@ end
 ; Procedimiento que decide la direccion en la que se va a mover la tortuga y avanza un patch
 to decide-direction
    set _FOUNDDIRECTION 0
-   ;show "Starting"
-   ;print-status _ROW _COLUMN _DIRECTION
    set _REPEATPATCHCOUNTER (_REPEATPATCHCOUNTER + 1) ; marca que este patch ya fue visitado en este tick
    if(is-inside-border _COLUMN _ROW)
    [
@@ -44,14 +48,8 @@ to go-up
   [
     set _REPEATPATCHCOUNTER 0
     set _ROW (_ROW - 1)
-    ;set _DIRECTION _UP
     ask turtles[set heading _UP fd 1]
     set _FOUNDDIRECTION 1
-    ;ask turtles[set heading _UP]
-    ;ask turtles[ fd 1]
-    ;show "UP"
-    ;set time time + 1 
-    ;print-status _ROW _COLUMN _DIRECTION
   ]
 end
 
@@ -64,14 +62,8 @@ to go-right
   [
     set _REPEATPATCHCOUNTER 0
     set _COLUMN (_COLUMN + 1)
-    ;set _DIRECTION _RIGHT
     ask turtles[set heading _RIGHT fd 1]
     set _FOUNDDIRECTION 1
-    ;ask turtles[set heading _RIGHT ]
-    ;ask turtles[fd 1]
-    ;show "RIGHT"
-    ;set time time + 1 
-    ;print-status row column dir
   ]
 end
 
@@ -84,14 +76,8 @@ to go-down
   [
     set _REPEATPATCHCOUNTER 0
     set _ROW (_ROW + 1)
-    ;set _DIRECTION _DOWN
     ask turtles[set heading _DOWN fd 1]
     set _FOUNDDIRECTION 1
-    ;ask turtles[set heading _DOWN ]
-    ;ask turtles[fd 1]
-    ;show "DOWN"
-    ;set time time + 1 
-    ;print-status row column dir
   ]
 end
 
@@ -101,41 +87,30 @@ to go-left
   ; verifica que el vecino hacia el cual voy a moverme esta sucio
   ; verifica que ningun otro movimiento fue realizado durante este tick
   if(is-inside-border (_COLUMN - 1) _ROW and is-neighbor-dusty -1 0 and _FOUNDDIRECTION != 1)
-  ;if(is-inside-border _ROW (_COLUMN - 1) and is-neighbor-dusty -1 0)
   [
     set _REPEATPATCHCOUNTER 0
     set _COLUMN (_COLUMN - 1)
-    ;set _DIRECTION _LEFT
     ask turtles[set heading _LEFT fd 1]
     set _FOUNDDIRECTION 1
-    ;ask turtles[set heading _LEFT]
-    ;ask turtles[ fd 1]
-    ;show "LEFT"
-    ;set time time + 1 
-    ;print-status row column dir
   ]
 end
 
 ; Encuentra el patch sucio mas cercano a la posicion actual de la aspiradora
 to find-nearest-dust
   ask turtles[
-    if _REPEATPATCHCOUNTER > 1 [ ;; No se si aca deberia ir un 1 o un 2
+    if _REPEATPATCHCOUNTER > 1 [
       let target-patch min-one-of (patches in-radius 40 with [pcolor = brown]) [distance myself]
       if target-patch != nobody  [
-        ;show "find nearest dust"
-        ;show "SHould i actually be here?: find-nearest-dust"
-        ;falta verificar aca que si hay un obstaculo entonces que se cambie la direccion de la tortuga: patch-ahead
         face target-patch
         fd 1
         set time time + 1 
-        ; move-to target-patch
       ]
     ]
   ]
 end
 
+; Reporta si la aspiradora esta dentro de los confines del mapa
 to-report is-inside-border [x y]
-  ;ifelse (x > (min-pxcor + 1)) and (x < (max-pxcor - 1)) and (y > (min-pycor + 1)) and (y < (max-pycor - 1))
   ifelse (x > (min-pxcor)) and (x < (max-pxcor)) and (y > (min-pycor)) and (y < (max-pycor))
   [report true]
   [report false]
@@ -168,7 +143,6 @@ to vacuum-patch
      if([pcolor] of patch-at 0 0 = brown)
      [
        set _REPEATPATCHCOUNTER 0
-      ;set time time + 1 set time time + 1 
        set pcolor white
        pendown
      ]

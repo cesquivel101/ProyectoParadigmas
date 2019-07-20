@@ -1,7 +1,19 @@
- globals[direccion  _UP _DOWN _RIGHT _LEFT stopped? time promedio numRepeticion contador promedioInterno]; obstaculo]
+; Controla las ejecuciones del programa
 
-__includes["leftHand.nls" "simple.nls" "util.nls" "a_asterisco.nls" "corridas_estadistica.nls"]
+globals
+[
+  _UP ; 0 grados
+  _DOWN ; 180 grados
+  _RIGHT ; 90 grados
+  _LEFT ; 270 grados
+  stopped? ; se usa para verificar si una corrida termino
+  time ; tiempo de ejecucion de una corrida
+]
 
+; Archivos adicionales
+__includes["leftHand.nls" "simple.nls" "a_asterisco.nls" "corridas_estadistica.nls"]
+
+; Establecer valores iniciales de corrida
 to setup
   clear-all
   setup-dust
@@ -15,7 +27,6 @@ to setup
   [setup-left-hand]
   if(tipo-ejecucion = "a-asterisco")
   [setup-a-asterisco]
-  set direccion 90
 
   set _UP 0 ; Para dirigir el heading de la tortuga hacia el norte
   set _DOWN 180 ; Para dirigir el heading de la tortuga hacia el sur
@@ -33,12 +44,8 @@ to setup
   reset-ticks
 end
 
-
-;"simple"
-;"mano-izquierda"
-;"a-asterisco"
+; Comenzar ejecucion
 to go
-  show "estoy loco"
   if(tipo-ejecucion = "simple")
   [move-vacuum-simple]
   if(tipo-ejecucion = "mano-izquierda")
@@ -54,24 +61,13 @@ to go
   if stopped? = true [stop]
 end
 
-to mantener-mapa
-
-end
-
+; Pintar patch de cafe (sucio)
 to setup-dust
   ask patches [set pcolor brown]
 end
 
-
-
-
+; Crear y establecer valores iniciales de la aspiradora
 to setup-vacuum
-  ;create-turtles 1
-  ;ask turtles [set color gray]
-  ;set-default-shape turtles "circle"
-  ;ask turtles [setxy (min-pxcor + 1) (max-pycor - 1)]
-  ;ask turtles [set heading 90]
-
   create-turtles 1
   ask turtles [set color red ]
   set-default-shape turtles "target"
@@ -80,11 +76,6 @@ to setup-vacuum
 end
 
 to setup-obstacles
-;  ask n-of 10 patches
-;  [
-;    set pcolor brown
-;    ask patches in-radius random 5 [set pcolor 32]
-;  ]
   repeat obstacles [ask one-of patches [ set pcolor 32 ]]
 
   ask patches with [     ; creación de paredes en los bordes del mapa
@@ -95,15 +86,18 @@ to setup-obstacles
   ]
   [ set pcolor 32 ]      ; color de los obstáculos
 
+  ; El primer patch no puede ser un obstaculo
   ask patch 1 -1 [set pcolor brown]
 end
 
+; Dibujar rectangulo
 to draw-rectangle [x y width len]
   ask patches with
   [ (width + x) >= pxcor and pxcor >= x and y >= pycor and pycor >= (y - len) ]
   [ set pcolor 32 ]
 end
 
+; Crear mapa fijo
 to setup-fixed-map
 
   ; rectángulos
@@ -175,10 +169,10 @@ to setup-fixed-map
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-477
+475
 10
-914
-448
+1096
+632
 -1
 -1
 18.6
@@ -236,10 +230,10 @@ NIL
 0
 
 MONITOR
-807
-467
-902
-512
+946
+646
+1041
+691
 brown patches
 count patches with [pcolor = brown]
 17
@@ -287,7 +281,7 @@ CHOOSER
 tipo-ejecucion
 tipo-ejecucion
 "simple" "mano-izquierda" "a-asterisco"
-2
+1
 
 SWITCH
 34
@@ -296,15 +290,15 @@ SWITCH
 134
 mapa_fijo
 mapa_fijo
-1
+0
 1
 -1000
 
 MONITOR
-706
-466
-793
-511
+811
+646
+898
+691
 time
 time
 17
@@ -329,10 +323,10 @@ NIL
 1
 
 MONITOR
-474
-464
-559
-509
+531
+646
+616
+691
 Promedio
 promedio
 4
@@ -345,16 +339,16 @@ INPUTBOX
 389
 161
 numeroDeRepeticiones
-100.0
+10.0
 1
 0
 Number
 
 MONITOR
-589
-465
-684
-510
+665
+645
+760
+690
 # Repeticion
 numRepeticion
 17
@@ -362,55 +356,96 @@ numRepeticion
 11
 
 @#$#@#$#@
-## WHAT IS IT?
+## Que es?
 
 Una simulación del funcionamiento de un robot aspiradora, que se mueve de manera ordenada en un área que representa una habitación y aspira la suciedad de cada bloque por el que se mueve, hasta recorrerla por completo.
 
 Incluye tres modalidades diferentes: la primera realiza el recorrido sin ningún tipo de inteligencia artificial y las otras dos implementan heurísticas que buscan realizar recorridos más eficientes.
 
-## HOW IT WORKS
+## Como funciona?
+
+La simulacion cuenta con una aspiradora (circulo rojo en el mapa) que realiza una o varias corridas dependiendo del modo en que se use (simple o repeticion).
+Durante la corrida la aspiradora irá marcando el mapa con una linea roja para poder visualizar por donde ha pasado además de ir pintando los patches cafes, de blanco para indicar que fueron limpiados.
+La aspiradora no debe atravezar los obstaculos representados por patches de color cafe oscuro.
+
+Las corridas pueden ser de tres tipos:
+* A asterisco
+* Mano izquierda
+* Simple
+
+Una corrida termina cuando no quedan patches cafe claro en el mapa.
+
+
+### A asterisco
 
 A_Asterisco realiza un recorrido ordenado que busca limpiar cada fila del mapa por completo antes de avanzar a la siguiente y así sucesivamente hasta llegar a la última posición. Para ello se mueve al patch que está más cercano a su posición en la fila actual y calcula la ruta más corta para llegar hacia él. 
 
 Utiliza el algoritmo de búsqueda A asterisco (A*), que forma un árbol de búsqueda en el que el punto de inicio de una ruta, así como la raíz del árbol, es la posición inicial en el mapa donde se encuentra la aspiradora y busca las rutas desde cada uno de sus patches adyacentes (sus nodos hijos), de manera que no pasen por posiciones que ya hayan usado otras rutas para llegar al patch de destino. Después calcula el costo de cada ruta y escoge la que tenga el menor costo. 
 
-## HOW TO USE IT
+### Mano izquierda (leftHand)
+Realiza un recorrido usando el algoritmo de resolución de mapas: mano izquierda.
+Este recorrido es un tipo de espiral que busca mantener una pared (en nuestro caso obstaculos o patches limpios) a su lado izquierdo.
+Dado que la pared es dinamica, existen instancias en las que la aspiradora va a quedar encerrada, dependiendo del mapa generado, por lo que se codifico un procedimiento para moverse librementre hacia el patch sucio mas cercano
 
-tipo-ejecucion permite escoger uno de los tres tipos de funcionamiento para el recorrido de la aspiradora: simple, mano-izquierda y a-asterisco.
+### Simple
+El recorrido simple hace que la aspiradora se mueva hacia adelante siempre y cuando el patch este sucio. Si encuentra un obstaculo, gira la aspiradora en orden: arriba, derecha, abajo e izquierda. En el momento en que uno de esos giros produce una respuesta positiva al preguntar si el patch de adelante esta sucio, se mantiene esa direccion hasta que se encuentre un obstaculo o el patch ya este limpio. 
+Si por algun motivo la aspiradora se queda encerrada (no encuentra patches sucios adyacente o esta entre obstaculos), la aspiradora se mueve libremente hacia el patch sucio mas cercano.
 
-setup genera un mapa aleatorio, reinicia las variables a utilizar y ubica la aspiradora en la esquina superior izquierda del mapa. 
+## Como usar
 
-Mantener mapa permite cambiar cualquiera de los tres algoritmos de recorrido.
+**setup**
+Genera un mapa aleatorio, reinicia las variables a utilizar y ubica la aspiradora en la esquina superior izquierda del mapa. 
 
-go comienza la simulación del recorrido con el algoritmo escogido.
+**go**
+Comienza la simulación del recorrido con el algoritmo escogido.
 
-brown patches lleva un conteo de los patches que hay sucios durante el recorrido. Disminuye a medida que se van "aspirando".
+**go repeat**
+Ejecuta una corrida multiple (establecida por el valor en numeroDeRepeticiones)
 
-Totals grafica la disminución de patches sucios en el tiempo.
+**mapa_fijo**
+Permite escoger si cuando se preciosa setup, el mapa generado es el fijo (construido manualmente) o generado aleatoriamente. 
+Tambien funciona para el recorrido multiple con go repeat
 
-## THINGS TO NOTICE
+**numeroDeRepeticiones**
+Campo en el que se establece la cantidad de repeticiones para las corridas multiples (usando go repeat)
 
-(suggested things for the user to notice while running the model
+**obstacles**
+Fija la cantidad de obstaculos en el mapa [0-100]
 
-## THINGS TO TRY
+**tipo-ejecucion** 
+Permite escoger uno de los tres tipos de funcionamiento para el recorrido de la aspiradora: simple, mano-izquierda y a-asterisco.
 
-(suggested things for the user to try to do (move sliders, switches, etc.) with the model)
+**Totals** 
+grafica la disminución de patches sucios en el tiempo.
 
-## EXTENDING THE MODEL
+**promedio**
+Calcula el promedio de tiempo de la cantidad de corridas establecidas en el campo numeroDeRepeticiones
 
-(suggested things to add or change in the Code tab to make the model more complicated, detailed, accurate, etc.)
+**\# Repeticion** 
+La corrida en la que se encuentra actualmente el recorrido multiple.
 
-## NETLOGO FEATURES
+**time**
+Contabiliza el tiempo de ejecucion de una corrida
 
-(interesting or unusual features of NetLogo that the model uses, particularly in the Code tab; or where workarounds were needed for missing features)
+**brown patches** 
+lleva un conteo de los patches que hay sucios durante el recorrido. Disminuye a medida que se van "aspirando".
 
-## RELATED MODELS
+## Extendiendo el modelo (limitaciones)
 
-(models in the NetLogo Models Library and elsewhere which are of related interest)
+El algoritmo A asterisco presenta una limitación vi-sual, en la que, si se avanza más de un bloque por tick, el movimiento se realiza muy rápido, lo que puede dar la impresión de que se saltó de un punto a otro. Para poder seguir el movimiento, se puede bajar la veloci-dad de la simulación y también se puede seguir el rastro rojo que deja la aspiradora a su paso. También, una mejora que permitiría optimizar el tiempo de ejecución consiste en que, si el robot se encuentra en el medio de dos obstáculos, debe limpiar el área que se encuentra en medio antes de avanzar a los siguientes parches de la fila.
 
-## CREDITS AND REFERENCES
+Tanto el algoritmo aleatorio como el recorrido mano izquierda, presentan una limitación en el proce-dimiento que busca el patch de polvo mas cercano: no pueden evitar los obstáculos cuando están moviéndo-se de esta manera “libre”.
 
-(a reference to the model's URL on the web if it has one, as well as any other necessary credits, citations, and links)
+## Referencias
+
+Universidad de Costa Rica
+Paradigmas Computaciones
+Profesor: Alvaro de la Ossa
+
+Pablo Quiros	A75144
+Carlos Esquivel A62066
+
+2019
 @#$#@#$#@
 default
 true

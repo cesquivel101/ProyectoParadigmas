@@ -1,29 +1,38 @@
-globals[_ISLEFTPATCHDUSTY _REPORTVARIABLE _NOROUTECOUNTER];
+; Recorrido con heuristica de solucion de mapas, mano izquierda
 
-to setup-left-hand
-  set _NOROUTECOUNTER 0
-  set _ISLEFTPATCHDUSTY false
-  ask turtles[set heading _RIGHT]
-end
+globals[
+  _ISLEFTPATCHDUSTY ; Establece si el patch a la izquierda de la aspiradora esta sucio
+  _REPORTVARIABLE ; Variable de uso para reports
+  _NOROUTECOUNTER ; Contador de veces que aspiradora no pudo moverse. Se usa para determinar cuando mover la aspiradora libremente
+];
 
+; Mover la aspiradora con el algoritmo de resolucion de mapas, mano izquierda
 to move-vacuum-left-hand
   vacuum-dust
+  ; si el patch a la izquierda no es pared gire la aspiradora a la izquierda
   if(not is-left-patch-obstacle-or-white)
-  [ask turtles[left 90] ];set _NOROUTECOUNTER 0]
+  [ask turtles[left 90] ]
+  ; si el patch a mi izquierda es una pared
   ifelse(is-left-patch-obstacle-or-white)
   [
+     ; si el patch al frente esta sucio la aspiradora se mueve hacia el frente y pone el contador de inmobilizaciones en 0.
+     ; sino, gira a la derecha y aumenta el contador de inmovilizaciones
      ifelse(is-patch-ahead-dusty)
      [ask turtles[fd 1] set _NOROUTECOUNTER 0]
      [ask turtles[right 90] set _NOROUTECOUNTER (_NOROUTECOUNTER + 1)]
   ]
   [
+    
     ask turtles[right 90]
     set _NOROUTECOUNTER (_NOROUTECOUNTER + 1)
   ]
+  ; Si no encontro la ruta en 2 movimientos, muevase libremente hacia el patch con polvo mas cercano
+  ; Al ser 2, se promueve un movimiento mas rapido en las etapas finales
   if(_NOROUTECOUNTER > 2)
   [find-nearest-dust-left-hand set _NOROUTECOUNTER 0]
 end
 
+; Reporta si el patch a la izquierda de la aspiradora es pared
 to-report is-left-patch-obstacle-or-white
   
   ask turtles[left 90]
@@ -35,6 +44,7 @@ to-report is-left-patch-obstacle-or-white
   report _REPORTVARIABLE
 end
 
+; Reporta si el patch al frente es un obstaculo
 to-report is-patch-ahead-obstacle
   ask turtles[
   ask patch-ahead 1[
@@ -45,6 +55,7 @@ to-report is-patch-ahead-obstacle
   report _REPORTVARIABLE
 end
 
+; Reporta si el patch al frente esta limpio
 to-report is-patch-ahead-white
   ask turtles[
   ask patch-ahead 1[
@@ -55,6 +66,7 @@ to-report is-patch-ahead-white
   report _REPORTVARIABLE
 end
 
+; Reporta si el patch al frente esta sucio
 to-report is-patch-ahead-dusty
   ask turtles[
   ask patch-ahead 1[
@@ -65,6 +77,7 @@ to-report is-patch-ahead-dusty
   report _REPORTVARIABLE
 end
 
+; Reporta si el patch al frente no es un obstaculo
 to-report is-patch-ahead-possible
   ask turtles[
   ask patch-ahead 1[
@@ -80,19 +93,17 @@ to find-nearest-dust-left-hand
   ask turtles[
     let target-patch min-one-of (patches in-radius 40 with [pcolor = brown]) [distance myself]
     if target-patch != nobody  [
-      ;show "find nearest dust"
-      ;show "SHould i actually be here?: find-nearest-dust"
-      ;falta verificar aca que si hay un obstaculo entonces que se cambie la direccion de la tortuga: patch-ahead
       face target-patch fd 1
+      ; Ayuda a posicionar la tortuga en una posicion que permita de mejor manera el recorrido en forma de espiral
       ifelse(ycor < 0)
       [set heading _LEFT]
       [set heading _RIGHT]
       set time time + 1 
-      ; move-to target-patch
     ]
   ]
 end
 
+; Limpia un patch
 to vacuum-dust
   ask turtles [
     if pcolor = brown [ set pcolor white]

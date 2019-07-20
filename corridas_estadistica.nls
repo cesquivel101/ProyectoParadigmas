@@ -1,5 +1,12 @@
-globals [ stoppedSingleRun?]
+globals [ 
+  stoppedSingleRun? ; Establecer si una corrida termino
+  promedio ; promedio de corridas (monitor)
+  numRepeticion ; numero de repeticiones a ejecutar (input)
+  contador ; contador de ejecuciones
+  promedioInterno ; promedio que se calcula para todas las corridas
+]
 
+; Establecer valores iniciales para una corrida multiple 
 to setup-repeat
   clear-drawing 
   clear-turtles
@@ -16,16 +23,13 @@ to setup-repeat
   [setup-left-hand]
   if(tipo-ejecucion = "a-asterisco")
   [setup-a-asterisco]
-  set direccion 90
   
-  ;set contador 0
-  ;set numRepeticion 0
   set time 0
   set stoppedSingleRun? false
 end
 
+; Iniciar recorrido multiple
 to go-repeat
-  ;show numeroDeRepeticiones
   if(tipo-ejecucion = "simple")
   [move-vacuum-simple]
   if(tipo-ejecucion = "mano-izquierda")
@@ -34,32 +38,29 @@ to go-repeat
   [move-vacuum-a-asterisco]
   tick
   ask turtles[
+    ; Si (no) quedan patches sucios
     ifelse any? patches with [pcolor = brown]
-    [];print word "aca deberia entrar todas las veces contador:" contador]
+    []
     [
+      ; calcule el promedio
       set promedioInterno (promedioInterno + time)
+      ; aumente el contador
       set contador (contador + 1)
-      ;print word "Contador antes de setup: " contador
+      ; aumente el numero de repeticiones
       set numRepeticion contador
-      ;print word "Contador antes de setup: " contador
-      ;show "mae"
+      ; Establezca que se terminó una corrida
       set stoppedSingleRun? true
-      print word "Contador dentro de una corrida:" contador
     ]
   ]
-
+  ; Cuando hayamos terminado la cantidad de repeticiones establecida
   if (contador = numeroDeRepeticiones) [
-    print word "Valor del contador en la condicion de parada" contador
     set promedio (promedioInterno / numeroDeRepeticiones) 
     clear-drawing
     stop
-    ;clear-all
-   ; setup-repeat
-    
-    ;show "legal"
   ]
+  ; Si una corrida simple terminó, reestablezca los valores iniciales para una corrida multiple
   if(stoppedSingleRun?)
-  [ setup-repeat  print word "Contador dentro de una corrida pero en el setup:" contador]
+  [ setup-repeat]
   
 end
 
