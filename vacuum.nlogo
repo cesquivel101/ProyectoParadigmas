@@ -171,11 +171,11 @@ end
 GRAPHICS-WINDOW
 475
 10
-1096
-632
+1012
+548
 -1
 -1
-18.6
+16.03030303030303
 1
 10
 1
@@ -230,10 +230,10 @@ NIL
 0
 
 MONITOR
-946
-646
-1041
-691
+897
+571
+992
+616
 brown patches
 count patches with [pcolor = brown]
 17
@@ -281,7 +281,7 @@ CHOOSER
 tipo-ejecucion
 tipo-ejecucion
 "simple" "mano-izquierda" "a-asterisco"
-1
+2
 
 SWITCH
 34
@@ -295,10 +295,10 @@ mapa_fijo
 -1000
 
 MONITOR
-811
-646
-898
-691
+762
+571
+849
+616
 time
 time
 17
@@ -323,10 +323,10 @@ NIL
 1
 
 MONITOR
-531
-646
+482
+571
+567
 616
-691
 Promedio
 promedio
 4
@@ -345,10 +345,10 @@ numeroDeRepeticiones
 Number
 
 MONITOR
-665
-645
-760
-690
+616
+570
+711
+615
 # Repeticion
 numRepeticion
 17
